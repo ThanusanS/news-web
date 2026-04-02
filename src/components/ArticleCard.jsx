@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { FiEye, FiFileText } from 'react-icons/fi';
 import { estimateReadTime } from '../lib/seo';
 
 const CATEGORY_COLORS = {
@@ -14,9 +16,14 @@ const CATEGORY_COLORS = {
 
 export default function ArticleCard({ article, variant = 'default' }) {
   const readTime = estimateReadTime(article.content);
-  const timeAgo = article.publishedAt
-    ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })
-    : '';
+  const [timeAgo, setTimeAgo] = useState('');
+  const viewsLabel = Number(article.views || 0).toLocaleString('en-US');
+
+  useEffect(() => {
+    if (!article.publishedAt) return;
+    setTimeAgo(formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }));
+  }, [article.publishedAt]);
+
   const catColor = CATEGORY_COLORS[article.category] || 'bg-stone-100 text-stone-700';
 
   if (variant === 'horizontal') {
@@ -54,7 +61,7 @@ export default function ArticleCard({ article, variant = 'default' }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-stone-400 text-4xl">
-            {article.category === 'sri-lanka' ? '🇱🇰' : article.category === 'ai-tutorials' ? '🤖' : article.category === 'tech-news' ? '💻' : '📰'}
+            <FiFileText size={44} />
           </div>
         )}
         <div className={`absolute top-3 left-3 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${catColor}`}>
@@ -77,7 +84,7 @@ export default function ArticleCard({ article, variant = 'default' }) {
           </div>
           <div className="flex items-center gap-2">
             <span>{readTime} min</span>
-            {article.views > 0 && <span>· 👁 {article.views?.toLocaleString()}</span>}
+            {article.views > 0 && <span>· <FiEye className="inline-block mr-1" size={12} />{viewsLabel}</span>}
           </div>
         </div>
       </div>

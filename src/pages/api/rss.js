@@ -7,7 +7,9 @@ export default async function handler(req, res) {
     const result = await getArticles({ limit: 20 });
     const articles = result.documents;
 
-    const items = articles.map((a) => `
+    const items = articles
+      .map(
+        (a) => `
     <item>
       <title><![CDATA[${a.title}]]></title>
       <link>${SITE_CONFIG.url}/${a.slug}</link>
@@ -18,7 +20,9 @@ export default async function handler(req, res) {
       <category>${a.category?.replace(/-/g, ' ')}</category>
       ${a.featuredImage ? `<enclosure url="${a.featuredImage}" type="image/jpeg"/>` : ''}
       ${(a.tags || []).map((t) => `<tag>${t}</tag>`).join('')}
-    </item>`).join('');
+    </item>`
+      )
+      .join('');
 
     const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"

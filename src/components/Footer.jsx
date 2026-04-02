@@ -2,12 +2,12 @@ import Link from 'next/link';
 import Newsletter from './Newsletter';
 
 const CATEGORIES = [
-  { label: '🇱🇰 Sri Lanka News', href: '/category/sri-lanka' },
-  { label: '💻 Tech News', href: '/category/tech-news' },
-  { label: '🤖 AI Tutorials', href: '/category/ai-tutorials' },
-  { label: '🐍 Programming', href: '/category/programming' },
-  { label: '🌍 World News', href: '/category/world' },
-  { label: '💰 Business', href: '/category/business' },
+  { label: 'Sri Lanka News', href: '/category/sri-lanka' },
+  { label: 'Tech News', href: '/category/tech-news' },
+  { label: 'AI Tutorials', href: '/category/ai-tutorials' },
+  { label: 'Programming', href: '/category/programming' },
+  { label: 'World News', href: '/category/world' },
+  { label: 'Business', href: '/category/business' },
 ];
 
 const LINKS = [
@@ -41,9 +41,9 @@ export default function Footer() {
             <div className="flex gap-2">
               {[
                 { label: 'f', color: 'bg-[#1877F2]', href: '#' },
-                { label: '✕', color: 'bg-black dark:bg-white dark:text-black', href: '#' },
-                { label: '▶', color: 'bg-red-600', href: '#' },
-                { label: '📱', color: 'bg-green-500', href: '#' },
+                { label: 'X', color: 'bg-black dark:bg-white dark:text-black', href: '#' },
+                { label: 'YT', color: 'bg-red-600', href: '#' },
+                { label: 'WA', color: 'bg-green-500', href: '#' },
               ].map((s) => (
                 <a key={s.label} href={s.href} className={`w-8 h-8 ${s.color} text-white flex items-center justify-center rounded text-xs font-bold`}>
                   {s.label}
@@ -97,7 +97,7 @@ export default function Footer() {
 
         <div className="border-t border-stone-200 dark:border-neutral-800 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-stone-400 dark:text-neutral-600">
-            © 2026 CeylonUpdates.com · All rights reserved · Built with ❤️ in 🇱🇰 Sri Lanka
+            © 2026 CeylonUpdates.com · All rights reserved · Built in Sri Lanka
           </p>
           <div className="flex gap-4">
             <Link href="/privacy" className="text-xs text-stone-400 hover:text-accent">Privacy</Link>

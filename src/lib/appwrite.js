@@ -14,10 +14,12 @@ export { Query, ID };
 // ─── Config ────────────────────────────────────────────────────────────────
 export const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || 'ceylonupdates_db';
 export const ARTICLES_COL = process.env.NEXT_PUBLIC_APPWRITE_ARTICLES_COLLECTION_ID || 'articles';
-export const CATEGORIES_COL = process.env.NEXT_PUBLIC_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
+export const CATEGORIES_COL =
+  process.env.NEXT_PUBLIC_APPWRITE_CATEGORIES_COLLECTION_ID || 'categories';
 export const TAGS_COL = process.env.NEXT_PUBLIC_APPWRITE_TAGS_COLLECTION_ID || 'tags';
 export const COMMENTS_COL = process.env.NEXT_PUBLIC_APPWRITE_COMMENTS_COLLECTION_ID || 'comments';
-export const SUBSCRIBERS_COL = process.env.NEXT_PUBLIC_APPWRITE_SUBSCRIBERS_COLLECTION_ID || 'subscribers';
+export const SUBSCRIBERS_COL =
+  process.env.NEXT_PUBLIC_APPWRITE_SUBSCRIBERS_COLLECTION_ID || 'subscribers';
 export const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'media';
 
 // ─── Article helpers ────────────────────────────────────────────────────────
@@ -34,16 +36,8 @@ async function listArticlesWithFallback(querySets) {
 }
 
 export async function getArticles({ category, limit = 10, offset = 0, status = 'published' } = {}) {
-  const q1 = [
-    Query.orderDesc('publishedAt'),
-    Query.limit(limit),
-    Query.offset(offset),
-  ];
-  const q2 = [
-    Query.orderDesc('$createdAt'),
-    Query.limit(limit),
-    Query.offset(offset),
-  ];
+  const q1 = [Query.orderDesc('publishedAt'), Query.limit(limit), Query.offset(offset)];
+  const q2 = [Query.orderDesc('$createdAt'), Query.limit(limit), Query.offset(offset)];
 
   if (status) q1.unshift(Query.equal('status', status));
   if (category) {
@@ -51,11 +45,7 @@ export async function getArticles({ category, limit = 10, offset = 0, status = '
     q2.push(Query.equal('category', category));
   }
 
-  return listArticlesWithFallback([
-    q1,
-    q2,
-    [Query.limit(limit), Query.offset(offset)],
-  ]);
+  return listArticlesWithFallback([q1, q2, [Query.limit(limit), Query.offset(offset)]]);
 }
 
 export async function getArticleBySlug(slug) {
@@ -77,20 +67,9 @@ export async function getArticleBySlug(slug) {
 
 export async function getTrendingArticles(limit = 5) {
   return listArticlesWithFallback([
-    [
-      Query.equal('status', 'published'),
-      Query.orderDesc('views'),
-      Query.limit(limit),
-    ],
-    [
-      Query.equal('status', 'published'),
-      Query.orderDesc('$createdAt'),
-      Query.limit(limit),
-    ],
-    [
-      Query.orderDesc('$createdAt'),
-      Query.limit(limit),
-    ],
+    [Query.equal('status', 'published'), Query.orderDesc('views'), Query.limit(limit)],
+    [Query.equal('status', 'published'), Query.orderDesc('$createdAt'), Query.limit(limit)],
+    [Query.orderDesc('$createdAt'), Query.limit(limit)],
   ]);
 }
 

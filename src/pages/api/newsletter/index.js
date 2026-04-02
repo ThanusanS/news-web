@@ -11,6 +11,26 @@ function canSubscribe(ip) {
   return true;
 }
 
+function parseUnknownAttribute(err) {
+  const msg = err?.message || '';
+  const match = msg.match(/Unknown attribute:\s*"([^"]+)"/i);
+  return match ? match[1] : null;
+}
+
+async function createSubscriberWithFallback(payload) {
+  const doc = { ...payload };
+  for (let i = 0; i < 6; i += 1) {
+    try {
+      return await databases.createDocument(DB_ID, SUBSCRIBERS_COL, ID.unique(), doc);
+    } catch (err) {
+      const unknown = parseUnknownAttribute(err);
+      if (!unknown || !(unknown in doc)) throw err;
+      delete doc[unknown];
+    }
+  }
+  return databases.createDocument(DB_ID, SUBSCRIBERS_COL, ID.unique(), doc);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -31,7 +51,7 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'This email is already subscribed.' });
     }
 
-    await databases.createDocument(DB_ID, SUBSCRIBERS_COL, ID.unique(), {
+    await createSubscriberWithFallback({
       email,
       name: name || '',
       subscribedAt: new Date().toISOString(),

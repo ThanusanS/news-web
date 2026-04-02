@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Replace data-ad-* values with your real AdSense IDs
 const PUBLISHER_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
@@ -13,31 +13,60 @@ const SLOTS = {
 
 export default function AdSense({ type = 'rectangle', className = '' }) {
   const config = SLOTS[type] || SLOTS.rectangle;
+  const adRef = useRef(null);
+  const [isFilled, setIsFilled] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'development') return;
+
+    const insEl = adRef.current;
+    if (!insEl) return;
+
+    const updateFillState = () => {
+      const status = insEl.getAttribute('data-ad-status');
+      setIsFilled(status === 'filled');
+    };
+
     try {
-      if (typeof window !== 'undefined' && window.adsbygoogle) {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      }
-    } catch (e) {}
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+      // AdSense updates data-ad-status asynchronously (filled/unfilled).
+      const observer = new MutationObserver(updateFillState);
+      observer.observe(insEl, { attributes: true, attributeFilter: ['data-ad-status'] });
+
+      const timer = window.setTimeout(updateFillState, 2000);
+
+      return () => {
+        window.clearTimeout(timer);
+        observer.disconnect();
+      };
+    } catch {
+      setIsFilled(false);
+      return undefined;
+    }
   }, []);
 
-  // In development, show placeholder
+  // Hide ads in development to avoid empty placeholder blocks.
   if (process.env.NODE_ENV === 'development') {
-    return (
-      <div
-        className={`ad-zone ${className}`}
-        style={{ width: '100%', maxWidth: config.width, height: config.height, margin: '0 auto' }}
-      >
-        <span className="text-[9px] font-bold tracking-widest opacity-50">ADVERTISEMENT</span>
-        <span>{config.label} · Google AdSense</span>
-      </div>
-    );
+    return null;
+  }
+
+  const hasRealPublisherId = !PUBLISHER_ID.includes('XXXXXXXX');
+  if (!hasRealPublisherId) {
+    return null;
   }
 
   return (
-    <div className={className} style={{ textAlign: 'center' }}>
+    <div
+      className={className}
+      style={{
+        textAlign: 'center',
+        display: isFilled ? 'block' : 'none',
+      }}
+      aria-hidden={!isFilled}
+    >
       <ins
+        ref={adRef}
         className="adsbygoogle"
         style={{ display: 'block', width: config.width, height: config.height }}
         data-ad-client={PUBLISHER_ID}

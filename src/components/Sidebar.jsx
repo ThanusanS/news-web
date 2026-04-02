@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FiEye, FiMail, FiTrendingUp } from 'react-icons/fi';
 import AdSense from './AdSense';
 import Newsletter from './Newsletter';
 
@@ -18,7 +19,8 @@ export default function Sidebar({ trendingArticles = [] }) {
       {trendingArticles.length > 0 && (
         <div className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-lg p-4">
           <h3 className="font-head font-bold text-base mb-3 pb-2 border-b border-stone-200 dark:border-neutral-800">
-            🔥 Trending Now
+            <FiTrendingUp className="inline-block mr-2" size={16} />
+            Trending Now
           </h3>
           <div className="space-y-0">
             {trendingArticles.slice(0, 5).map((a, i) => (
@@ -34,7 +36,8 @@ export default function Sidebar({ trendingArticles = [] }) {
                     {a.title}
                   </h4>
                   <p className="text-xs text-stone-400 dark:text-neutral-600 mt-0.5">
-                    👁 {a.views?.toLocaleString()} views
+                    <FiEye className="inline-block mr-1" size={12} />
+                    {Number(a.views || 0).toLocaleString('en-US')} views
                   </p>
                 </div>
               </Link>
@@ -63,7 +66,10 @@ export default function Sidebar({ trendingArticles = [] }) {
 
       {/* Newsletter compact */}
       <div className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-lg p-4">
-        <h3 className="font-head font-bold text-base mb-1">📬 Newsletter</h3>
+        <h3 className="font-head font-bold text-base mb-1">
+          <FiMail className="inline-block mr-2" size={15} />
+          Newsletter
+        </h3>
         <p className="text-xs text-stone-500 dark:text-neutral-500 mb-3 leading-relaxed">
           Daily digest — top 5 stories every morning.
         </p>

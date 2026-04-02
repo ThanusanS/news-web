@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { FiMail } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { subscribeEmail } from '../lib/appwrite';
 
 export default function Newsletter({ compact = false }) {
   const [email, setEmail] = useState('');
@@ -12,13 +12,22 @@ export default function Newsletter({ compact = false }) {
     if (!email) return;
     setLoading(true);
     try {
-      await subscribeEmail(email, name);
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Subscription failed. Please try again.');
+      }
+
       toast.success('Subscribed! Check your inbox for confirmation.');
       setEmail('');
       setName('');
     } catch (err) {
-      // Duplicate email is common
-      toast.error('Already subscribed or invalid email.');
+      toast.error(err.message || 'Subscription failed. Please try again.');
     }
     setLoading(false);
   }
@@ -43,7 +52,10 @@ export default function Newsletter({ compact = false }) {
 
   return (
     <div className="bg-accent rounded-xl p-8 text-white text-center">
-      <h2 className="font-head text-2xl font-bold mb-2">📬 Daily Digest</h2>
+      <h2 className="font-head text-2xl font-bold mb-2">
+        <FiMail className="inline-block mr-2 -mt-0.5" size={22} />
+        Daily Digest
+      </h2>
       <p className="text-white/80 text-sm mb-6">
         Get the top 5 stories — Sri Lanka, AI & Tech — delivered every morning.
         <br />Join 6,840+ subscribers.
@@ -69,7 +81,7 @@ export default function Newsletter({ compact = false }) {
           disabled={loading}
           className="px-6 py-2.5 bg-white text-accent font-bold text-sm rounded hover:bg-stone-100 transition-colors disabled:opacity-50"
         >
-          {loading ? 'Joining...' : 'Subscribe Free →'}
+          {loading ? 'Joining...' : 'Subscribe Free'}
         </button>
       </form>
       <p className="text-white/50 text-xs mt-3">No spam. Unsubscribe anytime.</p>

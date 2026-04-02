@@ -1,3 +1,5 @@
+import { FiAlertCircle } from 'react-icons/fi';
+
 export default function BreakingTicker({ items = [] }) {
   const defaultItems = [
     'Sri Lanka GDP grows 4.2% in Q1 2026, beats IMF projections',
@@ -13,7 +15,8 @@ export default function BreakingTicker({ items = [] }) {
   return (
     <div className="bg-accent text-white flex items-center h-8 overflow-hidden">
       <div className="bg-black/25 px-4 h-full flex items-center text-[10px] font-black tracking-[2px] shrink-0 whitespace-nowrap">
-        ⚡ BREAKING
+        <FiAlertCircle className="mr-1.5" size={11} />
+        BREAKING
       </div>
       <div className="overflow-hidden flex-1">
         <div className="ticker-anim flex gap-8 whitespace-nowrap text-xs font-medium py-1 pl-6">

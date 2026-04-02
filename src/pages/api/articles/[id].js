@@ -8,7 +8,10 @@ export default async function handler(req, res) {
     try {
       let doc;
       // Try as slug first
-      const bySlug = await databases.listDocuments(DB_ID, ARTICLES_COL, [Query.equal('slug', id), Query.limit(1)]);
+      const bySlug = await databases.listDocuments(DB_ID, ARTICLES_COL, [
+        Query.equal('slug', id),
+        Query.limit(1),
+      ]);
       if (bySlug.documents.length) {
         doc = bySlug.documents[0];
       } else {
@@ -27,7 +30,9 @@ export default async function handler(req, res) {
     if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
     try {
       const data = { ...req.body, updatedAt: new Date().toISOString() };
-      delete data.$id; delete data.$createdAt; delete data.$updatedAt;
+      delete data.$id;
+      delete data.$createdAt;
+      delete data.$updatedAt;
       const updated = await databases.updateDocument(DB_ID, ARTICLES_COL, id, data);
       return res.status(200).json(updated);
     } catch (err) {

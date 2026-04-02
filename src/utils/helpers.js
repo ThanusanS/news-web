@@ -84,10 +84,10 @@ export function getCategoryColors(category) {
 // Category emoji
 export function getCategoryEmoji(category) {
   const map = {
-    'sri-lanka': '🇱🇰', 'tech-news': '💻', 'ai-tutorials': '🤖',
-    'programming': '🐍', 'world': '🌍', 'business': '💰',
+    'sri-lanka': 'SL', 'tech-news': 'TECH', 'ai-tutorials': 'AI',
+    'programming': 'CODE', 'world': 'WORLD', 'business': 'BIZ',
   };
-  return map[category] || '📰';
+  return map[category] || 'NEWS';
 }
 
 // Debounce
