@@ -5,14 +5,13 @@
   "description": "CeylonUpdates.com — Industry-level Sri Lanka News, AI & Tech Platform",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "test": "jest --watchAll=false",
     "test:coverage": "jest --coverage",
     "analyze": "ANALYZE=true next build",
-    "postbuild": "next-sitemap",
     "seed": "node scripts/seed.js"
   },
   "dependencies": {

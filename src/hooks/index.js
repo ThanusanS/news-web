@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import useSWR, { useSWRInfinite } from 'swr';
+import useSWR from 'swr';
+import useSWRInfinite from 'swr/infinite';
 import { debounce } from '../utils/helpers';
 
 // Generic SWR fetcher
