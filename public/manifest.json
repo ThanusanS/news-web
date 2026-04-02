@@ -1,0 +1,10 @@
+{
+  "name": "CeylonUpdates.com",
+  "short_name": "CeylonUpdates",
+  "description": "Latest Sri Lanka News, AI & Tech",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#C8102E",
+  "icons": []
+}

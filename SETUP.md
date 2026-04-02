@@ -1,0 +1,65 @@
+# CeylonUpdates.com v2.0 — Industry-Level Setup Guide
+
+## Quick Start
+```bash
+npm install
+cp .env.local.example .env.local   # Fill in your Appwrite IDs
+npm run dev                         # http://localhost:3000
+```
+
+## Appwrite Collections Required
+Run: `node scripts/setup-appwrite.js` to print all schemas.
+
+### articles
+title(300), slug(200)[unique], content(500000), excerpt(500), category(50),
+author(100), featuredImage(500), status(20), views(int), metaTitle(70),
+metaDescription(160), focusKeyword(100), tags(array), publishedAt(datetime),
+updatedAt(datetime), isFeatured(bool), allowComments(bool), language(5)
+
+Indexes: slug[unique], status[key], category[key], views[key], title[fulltext], tags[fulltext]
+
+### subscribers
+email(254)[unique], name(100), subscribedAt(30), active(bool), source(200)
+
+### comments
+articleId(36)[index], name(100), email(254), content(1000), website(200), approved(bool)[index], createdAt(30)
+
+## Admin Login
+URL: /admin/login
+Create user in Appwrite → Auth → Users → Create User
+
+## Seed Demo Data
+node scripts/seed.js
+
+## Deploy Vercel
+vercel --prod
+
+## Run Tests
+npm test
+npm run test:coverage
+
+## Docker
+docker build -t ceylonupdates .
+docker run -p 3000:3000 --env-file .env.local ceylonupdates
+
+## API Endpoints
+GET  /api/articles          - list (filter: category, status, search, sort)
+POST /api/articles          - create (auth required)
+GET  /api/articles/[id]     - get by id or slug
+PUT  /api/articles/[id]     - update (auth required)
+DELETE /api/articles/[id]   - delete (auth required)
+POST /api/articles/[id]/view - increment view count
+GET  /api/comments?articleId=X - get approved comments
+POST /api/comments          - submit comment
+POST /api/newsletter        - subscribe
+GET  /api/rss               - RSS 2.0 feed
+GET  /api/og?title=X        - dynamic OG image
+GET  /api/health            - health check
+
+## Key Files
+src/utils/constants.js    - site config, categories, ad slots
+src/utils/helpers.js      - 20+ utility functions
+src/utils/validators.js   - Zod validation schemas
+src/hooks/index.js        - 10 custom SWR hooks
+src/lib/appwrite.js       - Appwrite client + all DB helpers
+src/lib/seo.js            - SEO utils + JSON-LD schema builders

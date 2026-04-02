@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-900 font-body antialiased transition-colors duration-300;
+  }
+
+  .dark body,
+  .dark {
+    @apply bg-neutral-950 text-neutral-100;
+  }
+}
+
+@layer components {
+  /* ── Navbar ── */
+  .nav-link {
+    @apply px-3 py-1 text-sm font-medium text-stone-600 dark:text-neutral-400 
+           border-b-2 border-transparent hover:text-accent hover:border-accent 
+           transition-all duration-200;
+  }
+  .nav-link.active {
+    @apply text-accent border-accent;
+  }
+
+  /* ── Cards ── */
+  .article-card {
+    @apply bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 
+           rounded-lg overflow-hidden cursor-pointer 
+           hover:border-accent hover:-translate-y-0.5 hover:shadow-lg 
+           transition-all duration-200;
+  }
+
+  .cat-badge {
+    @apply text-[10px] font-bold tracking-widest text-accent uppercase;
+  }
+
+  .card-title {
+    @apply font-head font-bold text-stone-900 dark:text-neutral-100 leading-snug;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply px-4 py-2 bg-accent text-white rounded font-semibold text-sm 
+           hover:opacity-90 transition-opacity;
+  }
+  .btn-secondary {
+    @apply px-4 py-2 bg-stone-100 dark:bg-neutral-800 text-stone-700 dark:text-neutral-300 
+           border border-stone-200 dark:border-neutral-700 rounded font-semibold text-sm 
+           hover:border-accent hover:text-accent transition-all;
+  }
+
+  /* ── Form inputs ── */
+  .form-input {
+    @apply w-full px-3 py-2 bg-stone-50 dark:bg-neutral-900 
+           border border-stone-200 dark:border-neutral-700 rounded 
+           text-sm text-stone-900 dark:text-neutral-100 
+           focus:outline-none focus:border-accent transition-colors;
+  }
+
+  /* ── Section header ── */
+  .section-title {
+    @apply font-head text-xl font-bold flex items-center gap-2 
+           text-stone-900 dark:text-neutral-100;
+  }
+  .section-title::before {
+    content: '';
+    @apply w-1 h-5 bg-accent rounded-sm inline-block;
+  }
+
+  /* ── Tag ── */
+  .tag-pill {
+    @apply px-2 py-1 bg-stone-100 dark:bg-neutral-800 border border-stone-200 
+           dark:border-neutral-700 rounded text-xs text-stone-600 dark:text-neutral-400 
+           hover:bg-accent hover:text-white hover:border-accent transition-all cursor-pointer;
+  }
+
+  /* ── Ad placeholder ── */
+  .ad-zone {
+    @apply flex flex-col items-center justify-center bg-stone-100 dark:bg-neutral-900 
+           border border-dashed border-stone-300 dark:border-neutral-700 rounded-lg 
+           text-stone-400 dark:text-neutral-600 text-xs tracking-wider;
+  }
+
+  /* ── Article prose ── */
+  .article-prose {
+    @apply text-base leading-relaxed text-stone-700 dark:text-neutral-300;
+  }
+  .article-prose p { @apply mb-6; }
+  .article-prose h2 { @apply font-head text-2xl font-bold text-stone-900 dark:text-neutral-100 mt-10 mb-4; }
+  .article-prose h3 { @apply font-head text-xl font-bold text-stone-900 dark:text-neutral-100 mt-8 mb-3; }
+  .article-prose blockquote {
+    @apply border-l-4 border-accent pl-6 py-2 bg-stone-50 dark:bg-neutral-900 
+           rounded-r-lg my-8 italic text-stone-800 dark:text-neutral-200;
+  }
+  .article-prose ul { @apply list-disc list-inside mb-6 space-y-1; }
+  .article-prose ol { @apply list-decimal list-inside mb-6 space-y-1; }
+  .article-prose a { @apply text-accent underline; }
+  .article-prose code {
+    @apply font-mono text-sm bg-stone-100 dark:bg-neutral-800 px-1 py-0.5 rounded;
+  }
+  .article-prose pre {
+    @apply font-mono text-sm bg-stone-900 dark:bg-neutral-950 text-green-400 
+           p-4 rounded-lg overflow-x-auto my-6;
+  }
+  .article-prose img { @apply rounded-lg my-6 w-full; }
+
+  /* ── Status badges ── */
+  .badge-published { @apply bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded; }
+  .badge-draft     { @apply bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded; }
+}
+
+/* ── Breaking ticker ── */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-anim { animation: ticker 30s linear infinite; }
+.ticker-anim:hover { animation-play-state: paused; }
+
+/* ── Hero image overlay ── */
+.hero-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+}
+
+/* ── Tiptap editor ── */
+.ProseMirror {
+  @apply min-h-[300px] p-4 focus:outline-none text-stone-800 dark:text-neutral-200;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-stone-400 dark:text-neutral-600 pointer-events-none float-left h-0;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-stone-100 dark:bg-neutral-900; }
+::-webkit-scrollbar-thumb { @apply bg-stone-300 dark:bg-neutral-700 rounded-full; }
