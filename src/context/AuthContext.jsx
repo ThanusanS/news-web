@@ -9,7 +9,7 @@ const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
 
 function isAllowedAdmin(user) {
   if (!user?.email) return false;
-  if (ADMIN_EMAILS.length === 0) return true;
+  if (ADMIN_EMAILS.length === 0) return false;
   return ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 
@@ -34,7 +34,9 @@ export function AuthProvider({ children }) {
       }
     }
     initAuth();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   async function login(email, password) {
@@ -53,9 +55,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
   );
 }
 

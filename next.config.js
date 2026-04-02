@@ -12,7 +12,9 @@ const csp = `
   form-action 'self';
   frame-ancestors 'self';
   upgrade-insecure-requests;
-`.replace(/\s{2,}/g, ' ').trim();
+`
+  .replace(/\s{2,}/g, ' ')
+  .trim();
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
@@ -31,7 +33,13 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   images: {
-    domains: ['cloud.appwrite.io','fra.cloud.appwrite.io','images.unsplash.com','picsum.photos','res.cloudinary.com'],
+    domains: [
+      'cloud.appwrite.io',
+      'fra.cloud.appwrite.io',
+      'images.unsplash.com',
+      'picsum.photos',
+      'res.cloudinary.com',
+    ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -41,7 +49,10 @@ const nextConfig = {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
   async rewrites() {
-    return [{ source: '/rss.xml', destination: '/api/rss' }, { source: '/feed', destination: '/api/rss' }];
+    return [
+      { source: '/rss.xml', destination: '/api/rss' },
+      { source: '/feed', destination: '/api/rss' },
+    ];
   },
   async redirects() {
     return [{ source: '/admin', destination: '/admin/dashboard', permanent: false }];
