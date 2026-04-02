@@ -23,6 +23,14 @@ export default function AdminLayout({ children, title = 'Dashboard', description
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  function handleMenuToggle() {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setMobileOpen((o) => !o);
+      return;
+    }
+    setCollapsed((c) => !c);
+  }
+
   useEffect(() => {
     if (!loading && !user) router.replace('/admin/login');
   }, [user, loading]);
@@ -44,7 +52,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
 
   if (!user) return null;
 
-  const sidebarWidth = collapsed ? 'w-16' : 'w-60';
+  const sidebarWidth = collapsed ? 'lg:w-16' : 'lg:w-60';
 
   return (
     <div className="min-h-screen bg-stone-100 dark:bg-neutral-950 flex">
@@ -63,6 +71,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
           bg-white dark:bg-neutral-900
           border-r border-stone-200 dark:border-neutral-800
           transition-all duration-300 shrink-0
+          w-60
           ${sidebarWidth}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -145,7 +154,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-14 bg-white dark:bg-neutral-900 border-b border-stone-200 dark:border-neutral-800 flex items-center px-4 gap-3">
           <button
-            onClick={() => { setCollapsed((c) => !c); setMobileOpen((o) => !o); }}
+            onClick={handleMenuToggle}
             className="p-2 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-neutral-200 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-all"
           >
             {mobileOpen ? <FiX size={18} /> : <FiMenu size={18} />}
@@ -172,7 +181,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
           {description && (
             <p className="text-sm text-stone-500 dark:text-neutral-500 mb-6">{description}</p>
           )}

@@ -13,13 +13,13 @@ export default function BreakingTicker({ items = [] }) {
   const doubled = [...tickerItems, ...tickerItems];
 
   return (
-    <div className="bg-accent text-white flex items-center h-8 overflow-hidden">
-      <div className="bg-black/25 px-4 h-full flex items-center text-[10px] font-black tracking-[2px] shrink-0 whitespace-nowrap">
+    <div className="flex h-8 items-center overflow-hidden bg-accent text-white">
+      <div className="flex h-full shrink-0 items-center whitespace-nowrap bg-black/25 px-4 text-[10px] font-black tracking-[2px]">
         <FiAlertCircle className="mr-1.5" size={11} />
         BREAKING
       </div>
-      <div className="overflow-hidden flex-1">
-        <div className="ticker-anim flex gap-8 whitespace-nowrap text-xs font-medium py-1 pl-6">
+      <div className="flex-1 overflow-hidden">
+        <div className="ticker-anim flex gap-8 whitespace-nowrap py-1 pl-6 text-xs font-medium">
           {doubled.map((item, i) => (
             <span key={i} className="flex items-center gap-2">
               {item}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { AdminLayout } from './index';
+import AdminLayout from '../../components/admin/AdminLayout';
 import { getArticles, deleteArticle, databases, DB_ID, ARTICLES_COL, Query } from '../../lib/appwrite';
 import toast from 'react-hot-toast';
 import { FiEye, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';

@@ -4,7 +4,11 @@ import useSWRInfinite from 'swr/infinite';
 import { debounce } from '../utils/helpers';
 
 // Generic SWR fetcher
-export const fetcher = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
+export const fetcher = (url) =>
+  fetch(url).then((r) => {
+    if (!r.ok) throw new Error(r.statusText);
+    return r.json();
+  });
 
 // ── Articles hook with SWR ────────────────────────────────────────────────────
 export function useArticles({ category, limit = 12, status = 'published' } = {}) {
@@ -47,7 +51,9 @@ export function useSearch(initialQuery = '') {
   }, [query]);
 
   const { data, isLoading } = useSWR(
-    debouncedQuery.length >= 2 ? `/api/articles?search=${encodeURIComponent(debouncedQuery)}&limit=20` : null,
+    debouncedQuery.length >= 2
+      ? `/api/articles?search=${encodeURIComponent(debouncedQuery)}&limit=20`
+      : null,
     fetcher,
     { revalidateOnFocus: false }
   );
@@ -96,12 +102,19 @@ export function useBookmarks() {
 export function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
     if (typeof window === 'undefined') return initialValue;
-    try { return JSON.parse(localStorage.getItem(key)) ?? initialValue; } catch { return initialValue; }
+    try {
+      return JSON.parse(localStorage.getItem(key)) ?? initialValue;
+    } catch {
+      return initialValue;
+    }
   });
-  const set = useCallback((v) => {
-    setValue(v);
-    localStorage.setItem(key, JSON.stringify(v));
-  }, [key]);
+  const set = useCallback(
+    (v) => {
+      setValue(v);
+      localStorage.setItem(key, JSON.stringify(v));
+    },
+    [key]
+  );
   return [value, set];
 }
 
@@ -122,7 +135,12 @@ export function useInView(options = {}) {
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setInView(true); obs.unobserve(el); } }, options);
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setInView(true);
+        obs.unobserve(el);
+      }
+    }, options);
     obs.observe(el);
     return () => obs.disconnect();
   }, []);

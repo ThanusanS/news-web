@@ -2,6 +2,7 @@ import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {
   const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const hasRealGaId = GA_ID && GA_ID.startsWith('G-') && !GA_ID.includes('XXXX');
 
   return (
     <Html lang="en">
@@ -16,7 +17,7 @@ export default function Document() {
         <link rel="manifest" href="/manifest.json" />
 
         {/* Google Analytics */}
-        {GA_ID && (
+        {hasRealGaId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
             <script

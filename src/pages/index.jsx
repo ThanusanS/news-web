@@ -129,7 +129,8 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                 </h1>
                 <p className="text-sm text-white/70">
                   By {heroArticle?.author || 'Staff Writer'} &nbsp;·&nbsp;{' '}
-                  {Number(heroArticle?.views || 0).toLocaleString('en-US')} views &nbsp;·&nbsp; 5 min read
+                  {Number(heroArticle?.views || 0).toLocaleString('en-US')} views &nbsp;·&nbsp; 5
+                  min read
                 </p>
               </div>
             </Link>
@@ -208,7 +209,10 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
               {/* AI Tutorials */}
               <div className="mb-8">
                 <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
-                  <h2 className="section-title"><FiCpu className="inline-block mr-2" size={16} />AI Tutorials</h2>
+                  <h2 className="section-title">
+                    <FiCpu className="mr-2 inline-block" size={16} />
+                    AI Tutorials
+                  </h2>
                   <Link
                     href="/category/ai-tutorials"
                     className="text-xs font-bold text-accent hover:underline"
@@ -229,7 +233,10 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
               {/* Programming Guides */}
               <div className="mb-8">
                 <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
-                  <h2 className="section-title"><FiCode className="inline-block mr-2" size={16} />Programming Guides</h2>
+                  <h2 className="section-title">
+                    <FiCode className="mr-2 inline-block" size={16} />
+                    Programming Guides
+                  </h2>
                   <Link
                     href="/category/programming"
                     className="text-xs font-bold text-accent hover:underline"

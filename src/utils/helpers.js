@@ -36,7 +36,10 @@ export function truncate(str, length = 150) {
 
 // Strip HTML tags
 export function stripHtml(html = '') {
-  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // Estimate reading time
@@ -71,21 +74,51 @@ export function isValidEmail(email) {
 // Get category color classes
 export function getCategoryColors(category) {
   const map = {
-    'sri-lanka':    { bg: 'bg-red-100 dark:bg-red-900/20', text: 'text-red-700 dark:text-red-400', border: 'border-red-200' },
-    'tech-news':    { bg: 'bg-blue-100 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-400', border: 'border-blue-200' },
-    'ai-tutorials': { bg: 'bg-indigo-100 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-200' },
-    'programming':  { bg: 'bg-green-100 dark:bg-green-900/20', text: 'text-green-700 dark:text-green-400', border: 'border-green-200' },
-    'world':        { bg: 'bg-purple-100 dark:bg-purple-900/20', text: 'text-purple-700 dark:text-purple-400', border: 'border-purple-200' },
-    'business':     { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-200' },
+    'sri-lanka': {
+      bg: 'bg-red-100 dark:bg-red-900/20',
+      text: 'text-red-700 dark:text-red-400',
+      border: 'border-red-200',
+    },
+    'tech-news': {
+      bg: 'bg-blue-100 dark:bg-blue-900/20',
+      text: 'text-blue-700 dark:text-blue-400',
+      border: 'border-blue-200',
+    },
+    'ai-tutorials': {
+      bg: 'bg-indigo-100 dark:bg-indigo-900/20',
+      text: 'text-indigo-700 dark:text-indigo-400',
+      border: 'border-indigo-200',
+    },
+    programming: {
+      bg: 'bg-green-100 dark:bg-green-900/20',
+      text: 'text-green-700 dark:text-green-400',
+      border: 'border-green-200',
+    },
+    world: {
+      bg: 'bg-purple-100 dark:bg-purple-900/20',
+      text: 'text-purple-700 dark:text-purple-400',
+      border: 'border-purple-200',
+    },
+    business: {
+      bg: 'bg-yellow-100 dark:bg-yellow-900/20',
+      text: 'text-yellow-700 dark:text-yellow-400',
+      border: 'border-yellow-200',
+    },
   };
-  return map[category] || { bg: 'bg-stone-100', text: 'text-stone-600', border: 'border-stone-200' };
+  return (
+    map[category] || { bg: 'bg-stone-100', text: 'text-stone-600', border: 'border-stone-200' }
+  );
 }
 
 // Category emoji
 export function getCategoryEmoji(category) {
   const map = {
-    'sri-lanka': 'SL', 'tech-news': 'TECH', 'ai-tutorials': 'AI',
-    'programming': 'CODE', 'world': 'WORLD', 'business': 'BIZ',
+    'sri-lanka': 'SL',
+    'tech-news': 'TECH',
+    'ai-tutorials': 'AI',
+    programming: 'CODE',
+    world: 'WORLD',
+    business: 'BIZ',
   };
   return map[category] || 'NEWS';
 }
@@ -106,7 +139,11 @@ export function deepClone(obj) {
 
 // Safe JSON parse
 export function safeJson(str, fallback = null) {
-  try { return JSON.parse(str); } catch { return fallback; }
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
 }
 
 // Pagination helper
@@ -127,6 +164,9 @@ export function paginate(total, page, perPage) {
 // Build OG image URL (using dynamic og API)
 export function buildOgImageUrl(title, category) {
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
-  const params = new URLSearchParams({ title: title?.slice(0, 80) || '', category: category || '' });
+  const params = new URLSearchParams({
+    title: title?.slice(0, 80) || '',
+    category: category || '',
+  });
   return `${base}/api/og?${params}`;
 }

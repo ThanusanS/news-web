@@ -5,10 +5,10 @@ const PUBLISHER_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || 'ca-pub-XXX
 
 const SLOTS = {
   leaderboard: { slot: '1234567890', width: 728, height: 90, label: '728×90 Leaderboard' },
-  rectangle:   { slot: '0987654321', width: 300, height: 250, label: '300×250 Rectangle' },
-  halfPage:    { slot: '1122334455', width: 300, height: 600, label: '300×600 Half Page' },
-  inArticle:   { slot: '5544332211', width: 728, height: 90, label: '728×90 In-Article' },
-  mobile:      { slot: '9988776655', width: 320, height: 100, label: '320×100 Mobile' },
+  rectangle: { slot: '0987654321', width: 300, height: 250, label: '300×250 Rectangle' },
+  halfPage: { slot: '1122334455', width: 300, height: 600, label: '300×600 Half Page' },
+  inArticle: { slot: '5544332211', width: 728, height: 90, label: '728×90 In-Article' },
+  mobile: { slot: '9988776655', width: 320, height: 100, label: '320×100 Mobile' },
 };
 
 export default function AdSense({ type = 'rectangle', className = '' }) {

@@ -51,22 +51,23 @@ export default function Newsletter({ compact = false }) {
   }
 
   return (
-    <div className="bg-accent rounded-xl p-8 text-white text-center">
-      <h2 className="font-head text-2xl font-bold mb-2">
-        <FiMail className="inline-block mr-2 -mt-0.5" size={22} />
+    <div className="rounded-xl bg-accent p-8 text-center text-white">
+      <h2 className="mb-2 font-head text-2xl font-bold">
+        <FiMail className="-mt-0.5 mr-2 inline-block" size={22} />
         Daily Digest
       </h2>
-      <p className="text-white/80 text-sm mb-6">
+      <p className="mb-6 text-sm text-white/80">
         Get the top 5 stories — Sri Lanka, AI & Tech — delivered every morning.
-        <br />Join 6,840+ subscribers.
+        <br />
+        Join 6,840+ subscribers.
       </p>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
-          className="flex-1 px-4 py-2.5 rounded bg-white/20 placeholder-white/60 text-white border border-white/30 focus:outline-none focus:border-white text-sm"
+          className="flex-1 rounded border border-white/30 bg-white/20 px-4 py-2.5 text-sm text-white placeholder-white/60 focus:border-white focus:outline-none"
         />
         <input
           type="email"
@@ -74,17 +75,17 @@ export default function Newsletter({ compact = false }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="flex-1 px-4 py-2.5 rounded bg-white/20 placeholder-white/60 text-white border border-white/30 focus:outline-none focus:border-white text-sm"
+          className="flex-1 rounded border border-white/30 bg-white/20 px-4 py-2.5 text-sm text-white placeholder-white/60 focus:border-white focus:outline-none"
         />
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2.5 bg-white text-accent font-bold text-sm rounded hover:bg-stone-100 transition-colors disabled:opacity-50"
+          className="rounded bg-white px-6 py-2.5 text-sm font-bold text-accent transition-colors hover:bg-stone-100 disabled:opacity-50"
         >
           {loading ? 'Joining...' : 'Subscribe Free'}
         </button>
       </form>
-      <p className="text-white/50 text-xs mt-3">No spam. Unsubscribe anytime.</p>
+      <p className="mt-3 text-xs text-white/50">No spam. Unsubscribe anytime.</p>
     </div>
   );
 }

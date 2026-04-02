@@ -5,6 +5,9 @@ import BreakingTicker from './BreakingTicker';
 import AdSense from './AdSense';
 
 export default function Layout({ children, title, description }) {
+  const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || '';
+  const hasRealAdsenseId = adsenseId.startsWith('ca-pub-') && !adsenseId.includes('XXXX');
+
   return (
     <>
       <Head>
@@ -14,11 +17,13 @@ export default function Layout({ children, title, description }) {
         {description && <meta name="description" content={description} />}
         <link rel="icon" href="/favicon.ico" />
         {/* Google AdSense Script */}
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID}`}
-          crossOrigin="anonymous"
-        />
+        {hasRealAdsenseId && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </Head>
 
       {/* Top banner ad */}

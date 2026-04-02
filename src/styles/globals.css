@@ -124,6 +124,10 @@
 .ticker-anim { animation: ticker 30s linear infinite; }
 .ticker-anim:hover { animation-play-state: paused; }
 
+@media (max-width: 768px) {
+  .ticker-anim { animation-duration: 16s; }
+}
+
 /* ── Hero image overlay ── */
 .hero-overlay {
   background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);

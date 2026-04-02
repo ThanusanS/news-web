@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import slugify from 'slugify';
 import toast from 'react-hot-toast';
-import { AdminLayout } from './index';
+import AdminLayout from '../../components/admin/AdminLayout';
 import { createArticle, uploadFile, getFilePreviewUrl, ID } from '../../lib/appwrite';
 
 // Dynamic import for TipTap (SSR off)

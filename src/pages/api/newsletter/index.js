@@ -35,7 +35,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'anon';
-  if (!canSubscribe(ip)) return res.status(429).json({ error: 'Please wait before subscribing again.' });
+  if (!canSubscribe(ip))
+    return res.status(429).json({ error: 'Please wait before subscribing again.' });
 
   const parsed = newsletterSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -46,7 +47,9 @@ export default async function handler(req, res) {
 
   try {
     // Check for existing subscription
-    const existing = await databases.listDocuments(DB_ID, SUBSCRIBERS_COL, [Query.equal('email', email)]);
+    const existing = await databases.listDocuments(DB_ID, SUBSCRIBERS_COL, [
+      Query.equal('email', email),
+    ]);
     if (existing.documents.length > 0) {
       return res.status(409).json({ error: 'This email is already subscribed.' });
     }

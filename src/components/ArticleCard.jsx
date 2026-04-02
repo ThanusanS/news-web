@@ -6,12 +6,12 @@ import { FiEye, FiFileText } from 'react-icons/fi';
 import { estimateReadTime } from '../lib/seo';
 
 const CATEGORY_COLORS = {
-  'sri-lanka':   'bg-red-100 text-red-800',
-  'tech-news':   'bg-blue-100 text-blue-800',
-  'ai-tutorials':'bg-indigo-100 text-indigo-800',
-  'programming': 'bg-green-100 text-green-800',
-  'world':       'bg-purple-100 text-purple-800',
-  'business':    'bg-yellow-100 text-yellow-800',
+  'sri-lanka': 'bg-red-100 text-red-800',
+  'tech-news': 'bg-blue-100 text-blue-800',
+  'ai-tutorials': 'bg-indigo-100 text-indigo-800',
+  programming: 'bg-green-100 text-green-800',
+  world: 'bg-purple-100 text-purple-800',
+  business: 'bg-yellow-100 text-yellow-800',
 };
 
 export default function ArticleCard({ article, variant = 'default' }) {
@@ -28,63 +28,83 @@ export default function ArticleCard({ article, variant = 'default' }) {
 
   if (variant === 'horizontal') {
     return (
-      <Link href={`/${article.slug}`} className="flex gap-4 group cursor-pointer py-4 border-b border-stone-200 dark:border-neutral-800 last:border-0">
+      <Link
+        href={`/${article.slug}`}
+        className="group flex cursor-pointer gap-4 border-b border-stone-200 py-4 last:border-0 dark:border-neutral-800"
+      >
         {article.featuredImage && (
-          <div className="relative w-28 h-20 shrink-0 rounded overflow-hidden">
-            <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="112px" />
+          <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded">
+            <Image
+              src={article.featuredImage}
+              alt={article.title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="112px"
+            />
           </div>
         )}
         <div>
-          <div className={`text-[10px] font-bold tracking-widest uppercase mb-1 ${catColor} px-1.5 py-0.5 rounded inline-block`}>
+          <div
+            className={`mb-1 text-[10px] font-bold uppercase tracking-widest ${catColor} inline-block rounded px-1.5 py-0.5`}
+          >
             {article.category?.replace('-', ' ')}
           </div>
-          <h3 className="font-head font-bold text-sm leading-snug text-stone-900 dark:text-neutral-100 group-hover:text-accent transition-colors line-clamp-2">
+          <h3 className="line-clamp-2 font-head text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-accent dark:text-neutral-100">
             {article.title}
           </h3>
-          <p className="text-xs text-stone-500 dark:text-neutral-500 mt-1">{timeAgo} · {readTime} min read</p>
+          <p className="mt-1 text-xs text-stone-500 dark:text-neutral-500">
+            {timeAgo} · {readTime} min read
+          </p>
         </div>
       </Link>
     );
   }
 
   return (
-    <Link href={`/${article.slug}`} className="article-card flex flex-col group">
+    <Link href={`/${article.slug}`} className="article-card group flex flex-col">
       <div className="relative aspect-video overflow-hidden bg-stone-200 dark:bg-neutral-800">
         {article.featuredImage ? (
           <Image
             src={article.featuredImage}
             alt={article.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-stone-400 text-4xl">
+          <div className="flex h-full w-full items-center justify-center text-4xl text-stone-400">
             <FiFileText size={44} />
           </div>
         )}
-        <div className={`absolute top-3 left-3 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${catColor}`}>
+        <div
+          className={`absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${catColor}`}
+        >
           {article.category?.replace(/-/g, ' ')}
         </div>
       </div>
-      <div className="p-4 flex flex-col flex-1">
-        <h2 className="card-title text-[1rem] mb-2 line-clamp-3 group-hover:text-accent transition-colors">
+      <div className="flex flex-1 flex-col p-4">
+        <h2 className="card-title mb-2 line-clamp-3 text-[1rem] transition-colors group-hover:text-accent">
           {article.title}
         </h2>
-        <p className="text-sm text-stone-500 dark:text-neutral-500 line-clamp-2 mb-4 flex-1">
+        <p className="mb-4 line-clamp-2 flex-1 text-sm text-stone-500 dark:text-neutral-500">
           {article.excerpt || ''}
         </p>
-        <div className="flex items-center justify-between text-xs text-stone-400 dark:text-neutral-600 mt-auto">
+        <div className="mt-auto flex items-center justify-between text-xs text-stone-400 dark:text-neutral-600">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent to-orange-400 flex items-center justify-center text-white text-[10px] font-bold">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-[10px] font-bold text-white">
               {article.author ? article.author[0].toUpperCase() : 'A'}
             </div>
             <span>{article.author || 'Staff Writer'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span>{readTime} min</span>
-            {article.views > 0 && <span>· <FiEye className="inline-block mr-1" size={12} />{viewsLabel}</span>}
+            {article.views > 0 && (
+              <span>
+                · <FiEye className="mr-1 inline-block" size={12} />
+                {viewsLabel}
+              </span>
+            )}
           </div>
         </div>
       </div>

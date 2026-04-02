@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import toast from 'react-hot-toast';
-import { AdminLayout } from './index';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 export default function SeoPage() {
   const [saved, setSaved] = useState(false);
