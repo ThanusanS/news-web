@@ -21,9 +21,21 @@ const CATEGORY_META = {
 
 const PAGE_SIZE = 9;
 
+function toReadableCategoryTitle(value = '') {
+  return String(value)
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function CategoryPage({ articles, trendingArticles, category, total }) {
   const [page, setPage] = useState(1);
-  const meta = CATEGORY_META[category] || { title: category, description: '', Icon: FiFileText };
+  const meta = CATEGORY_META[category] || {
+    title: toReadableCategoryTitle(category),
+    description: '',
+    Icon: FiFileText,
+  };
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (

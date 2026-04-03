@@ -4,7 +4,7 @@ import ArticleCard from '../components/ArticleCard';
 import Sidebar from '../components/Sidebar';
 import AdSense from '../components/AdSense';
 import Link from 'next/link';
-import { FiCode, FiCpu, FiFileText, FiActivity, FiBriefcase, FiBookOpen } from 'react-icons/fi';
+import { FiCpu, FiFileText, FiActivity, FiBriefcase, FiBookOpen } from 'react-icons/fi';
 import { getArticles, getTrendingArticles } from '../lib/appwrite';
 
 export default function HomePage({ latestArticles, trendingArticles, heroArticle, sideArticles }) {
@@ -153,30 +153,6 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {latestArticles
                     .filter((a) => a.category === 'ai-tutorials')
-                    .slice(0, 3)
-                    .map((a) => (
-                      <ArticleCard key={a.$id} article={a} />
-                    ))}
-                </div>
-              </div>
-
-              {/* Programming Guides */}
-              <div className="mb-8">
-                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
-                  <h2 className="section-title">
-                    <FiCode className="mr-2 inline-block" size={16} />
-                    Programming Guides
-                  </h2>
-                  <Link
-                    href="/category/programming"
-                    className="text-xs font-bold text-accent hover:underline"
-                  >
-                    All Guides →
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {latestArticles
-                    .filter((a) => a.category === 'programming')
                     .slice(0, 3)
                     .map((a) => (
                       <ArticleCard key={a.$id} article={a} />

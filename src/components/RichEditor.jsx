@@ -268,6 +268,18 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   function normalizeLegacyListMarkup(html) {
     let normalized = String(html || '').replace(/&nbsp;/g, ' ');
 
+    // Drop standalone marker lines that create empty bullet rows.
+    normalized = normalized.replace(
+      /<p>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s*<\/p>/giu,
+      ''
+    );
+
+    // Convert check/cross/point marker paragraphs to proper list items.
+    normalized = normalized.replace(
+      /<p>\s*(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s+([\s\S]*?)<\/p>/giu,
+      '<ul><li>$1</li></ul>'
+    );
+
     normalized = normalized.replace(
       /<p>\s*(?:•|·|▪|\*)\s*<\/p>\s*<p>([\s\S]*?)<\/p>/gi,
       '<ul><li>$1</li></ul>'
@@ -279,9 +291,154 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     );
 
     normalized = normalized.replace(/<\/ul>\s*<ul>/gi, '');
+
+    // Clean malformed list items from rich HTML paste.
+    normalized = normalized.replace(
+      /<li>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)?\s*<\/li>/giu,
+      ''
+    );
+    normalized = normalized.replace(
+      /<li>\s*(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s+([\s\S]*?)<\/li>/giu,
+      '<li>$1</li>'
+    );
+    normalized = normalized.replace(
+      /<li>\s*(?:[-–—_=~*|.•▪◦·]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠){1,}\s*<\/li>/giu,
+      ''
+    );
+    normalized = normalized.replace(
+      /<li>\s*(?:<p[^>]*>)?\s*(?:<br\s*\/?>|&nbsp;|\u00a0|[\u200B-\u200D\uFEFF]|\s)*(?:<\/p>)?\s*<\/li>/giu,
+      ''
+    );
+    normalized = normalized.replace(/<ul>\s*<\/ul>/gi, '');
+    normalized = normalized.replace(/<ol>\s*<\/ol>/gi, '');
+
     normalized = normalized.replace(/<p>\s*<\/p>/gi, '');
 
     return normalized;
+  }
+
+  function normalizePastedHtml(html) {
+    let normalized = String(html || '');
+
+    // Strip aggressive alignment from copied rich text (e.g., ChatGPT/Docs/MS Word)
+    normalized = normalized.replace(/\sstyle="([^"]*)"/gi, (_, styleText) => {
+      const cleaned = styleText
+        .replace(/(^|;)\s*text-align\s*:\s*(left|right|center|justify)\s*;?/gi, '$1')
+        .replace(/;;+/g, ';')
+        .replace(/^;|;$/g, '')
+        .trim();
+
+      return cleaned ? ` style="${cleaned}"` : '';
+    });
+
+    // Remove Word/Docs class noise that can break editor formatting
+    normalized = normalized.replace(/\sclass="Mso[^"]*"/gi, '');
+
+    return normalizeLegacyListMarkup(normalized);
+  }
+
+  function convertPlainTextToStructuredHtml(text) {
+    const escapeHtml = (value) =>
+      String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    const lines = String(text || '').split(/\r?\n/);
+    const out = [];
+    let inUl = false;
+    let inOl = false;
+
+    const closeLists = () => {
+      if (inUl) {
+        out.push('</ul>');
+        inUl = false;
+      }
+      if (inOl) {
+        out.push('</ol>');
+        inOl = false;
+      }
+    };
+
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = String(lines[i] || '').trim();
+
+      if (!line) {
+        closeLists();
+        continue;
+      }
+
+      // If a marker is on its own line and content appears on a following line,
+      // merge them into a single bullet item.
+      const isMarkerOnly = /^(?:[-*•▪◦·●]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)$/u.test(line);
+      if (isMarkerOnly) {
+        let j = i + 1;
+        while (j < lines.length && !String(lines[j] || '').trim()) {
+          j += 1;
+        }
+
+        const nextLine = j < lines.length ? String(lines[j] || '').trim() : '';
+        const nextIsMarkerOnly = /^(?:[-*•▪◦·●]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)$/u.test(nextLine);
+        const nextIsSeparatorOnly = /^[-–—_=~*|.]{1,}$/u.test(nextLine);
+        if (nextLine && !nextIsMarkerOnly && !nextIsSeparatorOnly) {
+          if (inOl) {
+            out.push('</ol>');
+            inOl = false;
+          }
+          if (!inUl) {
+            out.push('<ul>');
+            inUl = true;
+          }
+          out.push(`<li>${escapeHtml(nextLine)}</li>`);
+          i = j;
+        }
+        continue;
+      }
+
+      const bulletMatch = line.match(
+        /^(?:(?:[-*•▪◦·●])|(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠))\s*(.+)$/u
+      );
+      if (bulletMatch) {
+        const bulletText = String(bulletMatch[1] || '')
+          .replace(/[\u200B-\u200D\uFEFF]/g, '')
+          .replace(/\u00a0/g, ' ')
+          .trim()
+          .replace(/^(?:[-*•▪◦·●]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s+/u, '');
+        if (!bulletText || /^[-–—_=~*|.]{1,}$/u.test(bulletText)) {
+          continue;
+        }
+        if (inOl) {
+          out.push('</ol>');
+          inOl = false;
+        }
+        if (!inUl) {
+          out.push('<ul>');
+          inUl = true;
+        }
+        out.push(`<li>${escapeHtml(bulletText)}</li>`);
+        continue;
+      }
+
+      const orderedMatch = line.match(/^\d+[.)]\s+(.+)$/);
+      if (orderedMatch) {
+        if (inUl) {
+          out.push('</ul>');
+          inUl = false;
+        }
+        if (!inOl) {
+          out.push('<ol>');
+          inOl = true;
+        }
+        out.push(`<li>${escapeHtml(orderedMatch[1])}</li>`);
+        continue;
+      }
+
+      closeLists();
+      out.push(`<p>${escapeHtml(line)}</p>`);
+    }
+
+    closeLists();
+    return out.join('');
   }
 
   const editor = useEditor({
@@ -301,7 +458,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
       CharacterCount,
       CustomImage.configure({ inline: false, allowBase64: true }),
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         autolink: true,
         protocols: ['http', 'https', 'mailto', 'tel'],
       }),
@@ -366,6 +523,34 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           const tr = view.state.tr.setSelection(NodeSelection.create(view.state.doc, pos));
           view.dispatch(tr);
           view.focus();
+          return false;
+        },
+        paste(view, event) {
+          const clipboard = event.clipboardData;
+          if (!clipboard) return false;
+
+          const html = clipboard.getData('text/html');
+          const plainText = clipboard.getData('text/plain');
+
+          const hasListLikePlainText =
+            plainText
+            && /(?:^|\n)\s*(?:(?:[-*•▪◦·]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)|\d+[.)])\s*/mu.test(plainText);
+
+          // Prefer plain-text normalization for ChatGPT-style pasted lists.
+          if (hasListLikePlainText) {
+            event.preventDefault();
+            const structuredHtml = convertPlainTextToStructuredHtml(plainText);
+            editor?.chain().focus().insertContent(structuredHtml).run();
+            return true;
+          }
+
+          if (html) {
+            event.preventDefault();
+            const normalizedHtml = normalizePastedHtml(html);
+            editor?.chain().focus().insertContent(normalizedHtml).run();
+            return true;
+          }
+
           return false;
         },
       },

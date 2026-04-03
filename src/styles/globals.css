@@ -80,11 +80,17 @@
   .article-prose p {
     @apply mb-6;
   }
+  .article-prose h1 {
+    @apply mb-4 mt-10 font-head text-3xl font-black text-stone-900 dark:text-neutral-100;
+  }
   .article-prose h2 {
     @apply mb-4 mt-10 font-head text-2xl font-bold text-stone-900 dark:text-neutral-100;
   }
   .article-prose h3 {
     @apply mb-3 mt-8 font-head text-xl font-bold text-stone-900 dark:text-neutral-100;
+  }
+  .article-prose h4 {
+    @apply mb-2 mt-6 font-head text-lg font-semibold text-stone-900 dark:text-neutral-100;
   }
   .article-prose blockquote {
     @apply my-8 rounded-r-lg border-l-4 border-accent bg-stone-50 py-2 pl-6 italic text-stone-800 dark:bg-neutral-900 dark:text-neutral-200;
@@ -94,6 +100,12 @@
   }
   .article-prose ol {
     @apply mb-6 list-inside list-decimal space-y-1;
+  }
+  .article-prose li {
+    @apply leading-relaxed;
+  }
+  .article-prose li > p {
+    @apply inline m-0;
   }
   .article-prose a {
     @apply text-blue-600 underline decoration-blue-600/70 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:decoration-blue-400/70 dark:hover:text-blue-300;
@@ -195,6 +207,86 @@
   .badge-draft {
     @apply rounded bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800;
   }
+
+  /* ── Premium Social Buttons ── */
+  .social-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold text-white;
+    box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+  }
+
+  .social-chip:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.05);
+    box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .social-chip-lg {
+    @apply gap-2 px-3.5 py-1.5 text-xs;
+  }
+
+  .social-chip-facebook {
+    background: linear-gradient(125deg, #1877f2 0%, #1d5fd1 100%);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .social-chip-x {
+    background: linear-gradient(125deg, #111111 0%, #2a2a2a 100%);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  .social-chip-whatsapp {
+    background: linear-gradient(125deg, #25d366 0%, #12a54a 100%);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .social-orb {
+    @apply flex h-8 w-8 items-center justify-center rounded-full border text-white;
+    box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 140ms ease, filter 140ms ease;
+  }
+
+  .social-orb:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.08);
+  }
+
+  .social-orb-facebook {
+    background: linear-gradient(135deg, #1877f2 0%, #1d5fd1 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .social-orb-x {
+    background: linear-gradient(135deg, #111111 0%, #2a2a2a 100%);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .social-orb-youtube {
+    background: linear-gradient(135deg, #ff3030 0%, #c10000 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .social-orb-whatsapp {
+    background: linear-gradient(135deg, #25d366 0%, #12a54a 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@media (min-width: 768px) {
+  .social-chip {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.78rem;
+  }
+
+  .social-chip-lg {
+    padding: 0.55rem 1.15rem;
+    font-size: 0.92rem;
+  }
+
+  .social-orb {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
 }
 
 ::selection {
@@ -272,6 +364,22 @@ select:focus-visible {
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   @apply pointer-events-none float-left h-0 text-stone-400 dark:text-neutral-600;
+}
+
+.ProseMirror h1 {
+  @apply mb-4 mt-6 font-head text-3xl font-black text-stone-900 dark:text-neutral-100;
+}
+
+.ProseMirror h2 {
+  @apply mb-3 mt-5 font-head text-2xl font-bold text-stone-900 dark:text-neutral-100;
+}
+
+.ProseMirror h3 {
+  @apply mb-2 mt-4 font-head text-xl font-bold text-stone-900 dark:text-neutral-100;
+}
+
+.ProseMirror h4 {
+  @apply mb-2 mt-3 font-head text-lg font-semibold text-stone-900 dark:text-neutral-100;
 }
 
 .ProseMirror a {
@@ -356,6 +464,11 @@ select:focus-visible {
   font-size: 0.78rem;
   font-style: italic;
   color: #7a7a7a;
+}
+
+.ProseMirror li > p {
+  display: inline;
+  margin: 0;
 }
 
 .ProseMirror .tableWrapper {

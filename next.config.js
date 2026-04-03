@@ -6,7 +6,7 @@ const csp = `
   img-src 'self' data: blob: https:;
   font-src 'self' https://fonts.gstatic.com data:;
   connect-src 'self' https://nyc.cloud.appwrite.io https://*.cloud.appwrite.io https://www.google-analytics.com https://region1.google-analytics.com;
-  frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com;
+  frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

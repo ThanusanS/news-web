@@ -13,7 +13,7 @@ export default function BreakingTicker({ items = [] }) {
   const doubled = [...tickerItems, ...tickerItems];
 
   return (
-    <div className="hidden md:flex h-7 items-center overflow-hidden bg-gradient-to-r from-navy via-accent to-accent2 text-white">
+    <div className="flex h-7 items-center overflow-hidden bg-gradient-to-r from-navy via-accent to-accent2 text-white">
       <div className="flex h-full shrink-0 items-center whitespace-nowrap bg-black/25 px-4 text-[10px] font-black tracking-[2px]">
         <FiAlertCircle className="mr-1.5" size={11} />
         BREAKING

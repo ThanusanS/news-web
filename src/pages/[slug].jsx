@@ -17,6 +17,29 @@ import { FiClock, FiShare2 } from 'react-icons/fi';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
 
+function SocialIcon({ platform, className = 'h-3.5 w-3.5 md:h-4 md:w-4' }) {
+  const base = { className, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' };
+  if (platform === 'facebook') {
+    return (
+      <svg {...base}>
+        <path d="M13.5 9H16V6h-2.5C11.6 6 10 7.6 10 9.5V12H8v3h2v6h3v-6h2.4l.6-3H13v-2.2c0-.5.4-.8.5-.8Z" />
+      </svg>
+    );
+  }
+  if (platform === 'x') {
+    return (
+      <svg {...base}>
+        <path d="M3 3h4.6l4.2 6L17 3h4l-7.2 8.2L21 21h-4.6l-4.8-6.8L6 21H2l7.6-8.7L3 3Zm4.2 2 9.4 14h1.2L8.4 5H7.2Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...base}>
+      <path d="M20.5 3.5A11.7 11.7 0 0 0 12 0C5.4 0 0 5.4 0 12a12 12 0 0 0 1.6 6l-1 5.8 5.9-1.5A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.5.9.9-3.4-.2-.4A9.7 9.7 0 0 1 2.3 12C2.3 6.6 6.6 2.3 12 2.3S21.7 6.6 21.7 12 17.4 21.8 12 21.8Zm5.3-7.3c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.8.2-.2.3-.9.9-1 1.1-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.4-1.6-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6.2-.2.3-.4.5-.6.1-.2.2-.3.3-.5.1-.2.1-.4 0-.6l-.9-2.1c-.2-.5-.5-.4-.8-.4h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3 0-.1-.2-.2-.5-.4Z" />
+    </svg>
+  );
+}
+
 function readAttr(attrs, key, fallback = '') {
   const direct = attrs.match(new RegExp(`${key}="([^"]*)"`, 'i'))?.[1];
   if (direct != null) return direct;
@@ -102,6 +125,7 @@ function normalizeEditorTableHtml(html = '') {
 }
 
 export default function ArticlePage({ article, relatedArticles }) {
+  const [currentPageUrl, setCurrentPageUrl] = useState('');
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
@@ -173,6 +197,12 @@ export default function ArticlePage({ article, relatedArticles }) {
     loadComments();
   }, [article?.$id]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentPageUrl(window.location.href);
+    }
+  }, []);
+
   if (!article) {
     return (
       <Layout title="Article Not Found | CeylonUpdates">
@@ -189,7 +219,8 @@ export default function ArticlePage({ article, relatedArticles }) {
     );
   }
 
-  const articleUrl = `${SITE_URL}/${article.slug}`;
+  const canonicalArticleUrl = `${SITE_URL}/${article.slug}`;
+  const articleUrl = currentPageUrl || canonicalArticleUrl;
   const seoProps = buildSeoProps({
     title: article.metaTitle || article.title,
     description: article.metaDescription || article.excerpt,
@@ -208,7 +239,10 @@ export default function ArticlePage({ article, relatedArticles }) {
   });
 
   const shareUrl = encodeURIComponent(articleUrl);
-  const shareTitle = encodeURIComponent(article.title);
+  const shareTitle = encodeURIComponent(article.title || 'CeylonUpdates');
+  const facebookShareHref = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+  const xShareHref = `https://x.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`;
+  const whatsappShareHref = `https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}`;
 
   return (
     <>
@@ -217,7 +251,7 @@ export default function ArticlePage({ article, relatedArticles }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(buildArticleSchema(article, articleUrl)),
+            __html: JSON.stringify(buildArticleSchema(article, canonicalArticleUrl)),
           }}
         />
         <script
@@ -311,28 +345,28 @@ export default function ArticlePage({ article, relatedArticles }) {
             {/* Share buttons */}
             <div className="ml-0 flex items-center gap-2 sm:ml-auto">
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                href={facebookShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-[#1877F2] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-facebook"
               >
-                f Share
+                <SocialIcon platform="facebook" /> Share
               </a>
               <a
-                href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
+                href={xShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-black px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-x"
               >
-                X Tweet
+                <SocialIcon platform="x" /> Tweet
               </a>
               <a
-                href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`}
+                href={whatsappShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-whatsapp"
               >
-                WhatsApp
+                <SocialIcon platform="whatsapp" /> WhatsApp
               </a>
             </div>
           </div>
@@ -390,28 +424,28 @@ export default function ArticlePage({ article, relatedArticles }) {
             </p>
             <div className="flex justify-center gap-3">
               <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                href={facebookShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-[#1877F2] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-facebook social-chip-lg"
               >
-                Facebook
+                <SocialIcon platform="facebook" className="h-4 w-4 md:h-[18px] md:w-[18px]" /> Facebook
               </a>
               <a
-                href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
+                href={xShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-black px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-x social-chip-lg"
               >
-                Twitter / X
+                <SocialIcon platform="x" className="h-4 w-4 md:h-[18px] md:w-[18px]" /> Twitter / X
               </a>
               <a
-                href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`}
+                href={whatsappShareHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-[#25D366] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="social-chip social-chip-whatsapp social-chip-lg"
               >
-                WhatsApp
+                <SocialIcon platform="whatsapp" className="h-4 w-4 md:h-[18px] md:w-[18px]" /> WhatsApp
               </a>
             </div>
           </div>

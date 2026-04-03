@@ -1,5 +1,41 @@
 import Link from 'next/link';
 import Newsletter from './Newsletter';
+import { SOCIAL_LINKS } from '../utils/constants';
+
+function SocialIcon({ platform }) {
+  const base = {
+    className: 'h-[14px] w-[14px] md:h-[18px] md:w-[18px]',
+    viewBox: '0 0 24 24',
+    fill: 'currentColor',
+    'aria-hidden': 'true',
+  };
+  if (platform === 'facebook') {
+    return (
+      <svg {...base}>
+        <path d="M13.5 9H16V6h-2.5C11.6 6 10 7.6 10 9.5V12H8v3h2v6h3v-6h2.4l.6-3H13v-2.2c0-.5.4-.8.5-.8Z" />
+      </svg>
+    );
+  }
+  if (platform === 'x') {
+    return (
+      <svg {...base}>
+        <path d="M3 3h4.6l4.2 6L17 3h4l-7.2 8.2L21 21h-4.6l-4.8-6.8L6 21H2l7.6-8.7L3 3Zm4.2 2 9.4 14h1.2L8.4 5H7.2Z" />
+      </svg>
+    );
+  }
+  if (platform === 'youtube') {
+    return (
+      <svg {...base}>
+        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6a3 3 0 0 0-2.1 2.1C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...base}>
+      <path d="M20.5 3.5A11.7 11.7 0 0 0 12 0C5.4 0 0 5.4 0 12a12 12 0 0 0 1.6 6l-1 5.8 5.9-1.5A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.5.9.9-3.4-.2-.4A9.7 9.7 0 0 1 2.3 12C2.3 6.6 6.6 2.3 12 2.3S21.7 6.6 21.7 12 17.4 21.8 12 21.8Zm5.3-7.3c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.8.2-.2.3-.9.9-1 1.1-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.4-1.6-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6.2-.2.3-.4.5-.6.1-.2.2-.3.3-.5.1-.2.1-.4 0-.6l-.9-2.1c-.2-.5-.5-.4-.8-.4h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3 0-.1-.2-.2-.5-.4Z" />
+    </svg>
+  );
+}
 
 const CATEGORIES = [
   { label: 'Home', href: '/' },
@@ -43,17 +79,35 @@ export default function Footer() {
             </p>
             <div className="flex gap-2">
               {[
-                { label: 'f', color: 'bg-[#1877F2]', href: '#' },
-                { label: 'X', color: 'bg-black dark:bg-white dark:text-black', href: '#' },
-                { label: 'YT', color: 'bg-red-600', href: '#' },
-                { label: 'WA', color: 'bg-green-500', href: '#' },
+                {
+                  key: 'facebook',
+                  color: 'social-orb-facebook',
+                  href: SOCIAL_LINKS.facebook,
+                },
+                {
+                  key: 'x',
+                  color: 'social-orb-x',
+                  href: SOCIAL_LINKS.twitter,
+                },
+                {
+                  key: 'youtube',
+                  color: 'social-orb-youtube',
+                  href: SOCIAL_LINKS.youtube,
+                },
+                {
+                  key: 'whatsapp',
+                  color: 'social-orb-whatsapp',
+                  href: SOCIAL_LINKS.whatsapp,
+                },
               ].map((s) => (
                 <a
-                  key={s.label}
+                  key={s.key}
                   href={s.href}
-                  className={`h-8 w-8 ${s.color} flex items-center justify-center rounded text-xs font-bold text-white`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`social-orb ${s.color}`}
                 >
-                  {s.label}
+                  <SocialIcon platform={s.key} />
                 </a>
               ))}
             </div>
@@ -95,27 +149,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Trust signals */}
-          <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-neutral-100">
-              Stats
-            </h3>
-            <div className="flex flex-col gap-3">
-              {[
-                { num: '100K+', label: 'Monthly Readers' },
-                { num: '5/day', label: 'Articles Published' },
-                { num: '247', label: 'Total Articles' },
-                { num: '6,840', label: 'Newsletter Subscribers' },
-              ].map((s) => (
-                <div key={s.label}>
-                  <div className="font-head text-lg font-bold leading-none text-accent">
-                    {s.num}
-                  </div>
-                  <div className="text-xs text-stone-500 dark:text-neutral-500">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="flex flex-col items-center justify-between gap-3 border-t border-stone-200 pt-5 dark:border-neutral-800 sm:flex-row">

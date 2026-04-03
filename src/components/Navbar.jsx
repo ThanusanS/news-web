@@ -6,7 +6,7 @@ import { FiSun, FiMoon, FiSearch, FiMenu, FiX } from 'react-icons/fi';
 
 const CATEGORIES = [
   { label: 'Home', href: '/' },
-  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
+  { label: 'Sri Lanka News', href: '/category/sri-lanka' },
   { label: 'World News', href: '/category/world' },
   { label: 'Sports', href: '/category/sports' },
   { label: 'Tech News', href: '/category/tech-news' },

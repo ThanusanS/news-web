@@ -51,15 +51,15 @@ export default function Newsletter({ compact = false }) {
   }
 
   return (
-    <div className="rounded-xl bg-accent p-8 text-center text-white">
-      <h2 className="mb-2 font-head text-2xl font-bold">
+    <div className="mx-auto max-w-3xl rounded-xl border border-stone-200 bg-stone-50 p-5 text-center text-stone-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 md:p-6">
+      <h2 className="mb-2 font-head text-xl font-bold md:text-2xl">
         <FiMail className="-mt-0.5 mr-2 inline-block" size={22} />
         Daily Digest
       </h2>
-      <p className="mb-6 text-sm text-white/80">
+      <p className="mb-5 text-sm text-stone-600 dark:text-neutral-300">
         Get the top 5 stories — Sri Lanka, AI & Tech — delivered every morning.
         <br />
-        Join 6,840+ subscribers.
+        Join our newsletter.
       </p>
       <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
         <input
@@ -67,7 +67,7 @@ export default function Newsletter({ compact = false }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
-          className="flex-1 rounded border border-white/30 bg-white/20 px-4 py-2.5 text-sm text-white placeholder-white/60 focus:border-white focus:outline-none"
+          className="flex-1 rounded border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 focus:border-accent focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-500"
         />
         <input
           type="email"
@@ -75,17 +75,17 @@ export default function Newsletter({ compact = false }) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="flex-1 rounded border border-white/30 bg-white/20 px-4 py-2.5 text-sm text-white placeholder-white/60 focus:border-white focus:outline-none"
+          className="flex-1 rounded border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 focus:border-accent focus:outline-none dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-500"
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-white px-6 py-2.5 text-sm font-bold text-accent transition-colors hover:bg-stone-100 disabled:opacity-50"
+          className="rounded bg-accent px-6 py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50"
         >
           {loading ? 'Joining...' : 'Subscribe Free'}
         </button>
       </form>
-      <p className="mt-3 text-xs text-white/50">No spam. Unsubscribe anytime.</p>
+      <p className="mt-3 text-xs text-stone-500 dark:text-neutral-400">No spam. Unsubscribe anytime.</p>
     </div>
   );
 }
