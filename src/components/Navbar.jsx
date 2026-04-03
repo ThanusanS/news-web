@@ -6,11 +6,13 @@ import { FiSun, FiMoon, FiSearch, FiMenu, FiX } from 'react-icons/fi';
 
 const CATEGORIES = [
   { label: 'Home', href: '/' },
-  { label: 'Sri Lanka', href: '/category/sri-lanka' },
+  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
+  { label: 'World News', href: '/category/world' },
+  { label: 'Sports', href: '/category/sports' },
   { label: 'Tech News', href: '/category/tech-news' },
-  { label: 'AI Tutorials', href: '/category/ai-tutorials' },
-  { label: 'Programming', href: '/category/programming' },
-  { label: 'World', href: '/category/world' },
+  { label: 'AI & Innovation', href: '/category/ai-tutorials' },
+  { label: 'Jobs & Careers', href: '/category/jobs-careers' },
+  { label: 'Education', href: '/category/education' },
 ];
 
 export default function Navbar() {
@@ -28,11 +30,11 @@ export default function Navbar() {
   return (
     <nav
       className={`sticky top-0 z-50 border-b border-stone-200 dark:border-neutral-800 transition-all
-        ${scrolled ? 'bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md' : 'bg-white dark:bg-neutral-950'}`}
+        ${scrolled ? 'bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md shadow-sm' : 'bg-white dark:bg-neutral-950'}`}
     >
-      <div className="max-w-7xl mx-auto px-4 flex items-center h-14 gap-3">
+      <div className="max-w-7xl mx-auto px-4 flex items-center h-12 md:h-14 gap-2.5">
         {/* Logo */}
-        <Link href="/" className="font-head text-2xl font-black text-accent shrink-0">
+        <Link href="/" className="font-head text-xl md:text-2xl font-black text-accent shrink-0">
           Ceylon<span className="text-stone-900 dark:text-neutral-100">Updates</span>
         </Link>
 
@@ -51,21 +53,21 @@ export default function Navbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-2 ml-auto">
-          <Link href="/search" className="w-9 h-9 flex items-center justify-center rounded-full bg-stone-100 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-accent transition-colors">
+          <Link href="/search" className="w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800 text-stone-700 dark:text-neutral-300 hover:text-accent transition-colors">
             <FiSearch size={16} />
           </Link>
           <button
             onClick={toggle}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-stone-100 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-accent transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800 text-stone-700 dark:text-neutral-300 hover:text-accent transition-colors"
             aria-label="Toggle theme"
           >
             {dark ? <FiSun size={16} /> : <FiMoon size={16} />}
           </button>
           <Link href="/admin" className="hidden sm:block px-3 py-1.5 bg-accent text-white rounded text-xs font-bold tracking-wide hover:opacity-90 transition-opacity">
-            ADMIN ▸
+            Admin
           </Link>
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full bg-stone-100 dark:bg-neutral-800"
+            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800"
             onClick={() => setMobileOpen((o) => !o)}
           >
             {mobileOpen ? <FiX size={18} /> : <FiMenu size={18} />}

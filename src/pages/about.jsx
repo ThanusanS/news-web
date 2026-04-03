@@ -2,12 +2,13 @@ import { NextSeo } from 'next-seo';
 import Layout from '../components/Layout';
 import Newsletter from '../components/Newsletter';
 import { SITE_CONFIG, SOCIAL_LINKS } from '../utils/constants';
+import { FiGlobe, FiCpu, FiCode, FiFileText, FiMail } from 'react-icons/fi';
 
 const TEAM = [
-  { name: 'Nimal Perera', role: 'Editor-in-Chief', bio: 'Senior journalist with 12 years covering Sri Lanka politics and economy.', emoji: '📰' },
-  { name: 'Kasun Silva', role: 'Tech Editor', bio: 'Full-stack developer turned tech journalist. Passionate about AI and the future of work.', emoji: '💻' },
-  { name: 'Priya Mendis', role: 'AI & Programming Writer', bio: 'Machine learning engineer sharing practical AI tutorials for South Asian readers.', emoji: '🤖' },
-  { name: 'Ravi De Silva', role: 'World News Correspondent', bio: 'International affairs analyst with experience across South and Southeast Asia.', emoji: '🌍' },
+  { name: 'Nimal Perera', role: 'Editor-in-Chief', bio: 'Senior journalist with 12 years covering Sri Lanka politics and economy.', icon: FiFileText },
+  { name: 'Kasun Silva', role: 'Tech Editor', bio: 'Full-stack developer turned tech journalist. Passionate about AI and the future of work.', icon: FiCode },
+  { name: 'Priya Mendis', role: 'AI & Programming Writer', bio: 'Machine learning engineer sharing practical AI tutorials for South Asian readers.', icon: FiCpu },
+  { name: 'Ravi De Silva', role: 'World News Correspondent', bio: 'International affairs analyst with experience across South and Southeast Asia.', icon: FiGlobe },
 ];
 
 export default function AboutPage() {
@@ -38,12 +39,12 @@ export default function AboutPage() {
             <h2 className="font-head text-2xl font-bold mb-4 text-stone-900 dark:text-neutral-50">Our Mission</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { icon: '🇱🇰', title: 'Represent Sri Lanka', text: 'Be the most trusted source for Sri Lanka news, covering stories that matter to our community both locally and in the diaspora.' },
-                { icon: '🤖', title: 'Democratize AI Knowledge', text: 'Make AI tools and tutorials accessible to everyone in South Asia — from students to professionals, in plain language that works.' },
-                { icon: '💻', title: 'Empower Developers', text: 'Build the best programming resource for Sri Lankan developers — practical guides, real projects, and career advice.' },
+                { icon: FiGlobe, title: 'Represent Sri Lanka', text: 'Be the most trusted source for Sri Lanka news, covering stories that matter to our community both locally and in the diaspora.' },
+                { icon: FiCpu, title: 'Democratize AI Knowledge', text: 'Make AI tools and tutorials accessible to everyone in South Asia — from students to professionals, in plain language that works.' },
+                { icon: FiCode, title: 'Empower Developers', text: 'Build the best programming resource for Sri Lankan developers — practical guides, real projects, and career advice.' },
               ].map((m) => (
                 <div key={m.title} className="bg-stone-50 dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl p-5">
-                  <div className="text-3xl mb-3">{m.icon}</div>
+                  <div className="mb-3 text-accent"><m.icon size={26} /></div>
                   <h3 className="font-head font-bold text-stone-900 dark:text-neutral-100 mb-2">{m.title}</h3>
                   <p className="text-sm text-stone-600 dark:text-neutral-400 leading-relaxed">{m.text}</p>
                 </div>
@@ -76,7 +77,7 @@ export default function AboutPage() {
               {TEAM.map((member) => (
                 <div key={member.name} className="flex gap-4 p-5 bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-orange-400 flex items-center justify-center text-xl shrink-0">
-                    {member.emoji}
+                    <member.icon size={20} className="text-white" />
                   </div>
                   <div>
                     <h3 className="font-head font-bold text-stone-900 dark:text-neutral-100">{member.name}</h3>
@@ -96,7 +97,7 @@ export default function AboutPage() {
               We offer banner ads, sponsored content, and newsletter sponsorships.
             </p>
             <a href="mailto:ads@ceylonupdates.com" className="btn-primary inline-flex">
-              📧 Contact Advertising Team →
+              <FiMail size={16} className="mr-2" /> Contact Advertising Team →
             </a>
           </section>
 

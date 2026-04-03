@@ -4,12 +4,24 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { databases, DB_ID, ARTICLES_COL, SUBSCRIBERS_COL, COMMENTS_COL, Query } from '../../lib/appwrite';
-import { formatNumber, getCategoryEmoji } from '../../utils/helpers';
+import { formatNumber } from '../../utils/helpers';
 import {
   FiTrendingUp, FiFileText, FiUsers, FiMail,
   FiEye, FiEdit2, FiTrash2, FiArrowUp, FiActivity,
-  FiPlusCircle, FiMessageSquare,
+  FiPlusCircle, FiMessageSquare, FiCpu, FiCode, FiGlobe, FiBriefcase, FiBookOpen,
 } from 'react-icons/fi';
+
+const CATEGORY_ICONS = {
+  'sri-lanka': FiGlobe,
+  'tech-news': FiActivity,
+  sports: FiActivity,
+  'ai-tutorials': FiCpu,
+  'jobs-careers': FiBriefcase,
+  education: FiBookOpen,
+  programming: FiCode,
+  world: FiGlobe,
+  business: FiBriefcase,
+};
 
 function StatCard({ label, value, change, icon: Icon, color = 'accent', loading }) {
   const colorMap = {
@@ -132,17 +144,20 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-stone-900 dark:text-neutral-100 mb-4">Quick Post</h2>
           <div className="space-y-2">
             {[
-              { label: '🇱🇰 Sri Lanka News', cat: 'sri-lanka' },
-              { label: '🤖 AI Tutorial', cat: 'ai-tutorials' },
-              { label: '💻 Tech Article', cat: 'tech-news' },
-              { label: '🐍 Dev Guide', cat: 'programming' },
-              { label: '🌍 World News', cat: 'world' },
+              { label: 'Sri Lanka News 🇱🇰', cat: 'sri-lanka', Icon: FiGlobe },
+              { label: 'Sports', cat: 'sports', Icon: FiActivity },
+              { label: 'AI & Innovation', cat: 'ai-tutorials', Icon: FiCpu },
+              { label: 'Tech News', cat: 'tech-news', Icon: FiActivity },
+              { label: 'Jobs & Careers', cat: 'jobs-careers', Icon: FiBriefcase },
+              { label: 'Education', cat: 'education', Icon: FiBookOpen },
+              { label: 'World News', cat: 'world', Icon: FiGlobe },
             ].map((q) => (
               <Link
                 key={q.cat}
                 href={`/admin/new-post?category=${q.cat}`}
                 className="flex items-center gap-2 w-full px-3 py-2.5 text-sm rounded-lg bg-stone-50 dark:bg-neutral-800 hover:bg-accent hover:text-white border border-stone-200 dark:border-neutral-700 hover:border-accent transition-all font-medium group"
               >
+                <q.Icon size={14} />
                 {q.label}
                 <FiPlusCircle size={13} className="ml-auto opacity-0 group-hover:opacity-100" />
               </Link>
@@ -177,14 +192,19 @@ export default function AdminDashboard() {
               </div>
             ) : recentArticles.map((a) => (
               <div key={a.$id} className="flex items-center gap-3 p-4 hover:bg-stone-50 dark:hover:bg-neutral-800/50 transition-colors">
+                {(() => {
+                  const CategoryIcon = CATEGORY_ICONS[a.category] || FiFileText;
+                  return (
                 <div className="w-9 h-9 rounded-lg bg-stone-100 dark:bg-neutral-800 flex items-center justify-center text-lg shrink-0">
-                  {getCategoryEmoji(a.category)}
+                  <CategoryIcon size={16} className="text-stone-500 dark:text-neutral-400" />
                 </div>
+                  );
+                })()}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-stone-900 dark:text-neutral-100 truncate">{a.title}</p>
                   <div className="flex items-center gap-3 mt-0.5">
                     <span className="text-xs text-stone-400 dark:text-neutral-600 capitalize">{a.category?.replace(/-/g, ' ')}</span>
-                    <span className="text-xs text-stone-400 dark:text-neutral-600">👁 {a.views?.toLocaleString() || 0}</span>
+                    <span className="text-xs text-stone-400 dark:text-neutral-600 inline-flex items-center gap-1"><FiEye size={12} /> {a.views?.toLocaleString() || 0}</span>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                       {a.status?.toUpperCase()}
                     </span>
@@ -203,7 +223,7 @@ export default function AdminDashboard() {
         <div className="space-y-4">
           {/* Top articles */}
           <div className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl p-4">
-            <h2 className="font-semibold text-stone-900 dark:text-neutral-100 mb-3">🔥 Top Articles</h2>
+            <h2 className="font-semibold text-stone-900 dark:text-neutral-100 mb-3 inline-flex items-center gap-2"><FiTrendingUp size={14} /> Top Articles</h2>
             <div className="space-y-3">
               {loading ? (
                 Array.from({ length: 4 }).map((_, i) => (
@@ -219,7 +239,7 @@ export default function AdminDashboard() {
                     <Link href={`/${a.slug}`} target="_blank" className="text-xs font-medium text-stone-700 dark:text-neutral-300 hover:text-accent line-clamp-2 leading-snug">
                       {a.title}
                     </Link>
-                    <p className="text-[10px] text-stone-400 mt-0.5">👁 {a.views?.toLocaleString() || 0} views</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5 inline-flex items-center gap-1"><FiEye size={10} /> {a.views?.toLocaleString() || 0} views</p>
                   </div>
                 </div>
               ))}
@@ -229,11 +249,11 @@ export default function AdminDashboard() {
           {/* Pending comments */}
           <div className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-stone-900 dark:text-neutral-100">💬 Pending Comments</h2>
+              <h2 className="font-semibold text-stone-900 dark:text-neutral-100 inline-flex items-center gap-2"><FiMessageSquare size={14} /> Pending Comments</h2>
               <Link href="/admin/comments" className="text-xs text-accent hover:underline">All →</Link>
             </div>
             {pendingComments.length === 0 ? (
-              <p className="text-xs text-stone-400 dark:text-neutral-600 text-center py-4">No pending comments 🎉</p>
+              <p className="text-xs text-stone-400 dark:text-neutral-600 text-center py-4">No pending comments.</p>
             ) : pendingComments.map((c) => (
               <div key={c.$id} className="border-b border-stone-100 dark:border-neutral-800 last:border-0 py-2">
                 <p className="text-xs font-medium text-stone-800 dark:text-neutral-200">{c.name}</p>

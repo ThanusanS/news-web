@@ -9,9 +9,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        accent: '#C8102E',
-        accent2: '#FF6B35',
-        navy: '#1A3A5C',
+        accent: '#B5122B',
+        accent2: '#F97316',
+        navy: '#14324D',
       },
       fontFamily: {
         head: ['Playfair Display', 'Georgia', 'serif'],

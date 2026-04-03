@@ -5,9 +5,18 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com'
 
 const STATIC_PAGES = [
   { path: '', priority: '1.0', changefreq: 'daily' },
+  { path: '/about', priority: '0.8', changefreq: 'monthly' },
+  { path: '/contact', priority: '0.8', changefreq: 'monthly' },
+  { path: '/write-for-us', priority: '0.7', changefreq: 'monthly' },
+  { path: '/advertise', priority: '0.7', changefreq: 'monthly' },
+  { path: '/privacy', priority: '0.6', changefreq: 'yearly' },
+  { path: '/terms', priority: '0.6', changefreq: 'yearly' },
   { path: '/category/sri-lanka', priority: '0.9', changefreq: 'hourly' },
   { path: '/category/tech-news', priority: '0.9', changefreq: 'daily' },
+  { path: '/category/sports', priority: '0.8', changefreq: 'daily' },
   { path: '/category/ai-tutorials', priority: '0.9', changefreq: 'weekly' },
+  { path: '/category/jobs-careers', priority: '0.8', changefreq: 'weekly' },
+  { path: '/category/education', priority: '0.8', changefreq: 'weekly' },
   { path: '/category/programming', priority: '0.9', changefreq: 'weekly' },
   { path: '/category/world', priority: '0.8', changefreq: 'daily' },
   { path: '/search', priority: '0.7', changefreq: 'monthly' },
@@ -50,13 +59,14 @@ function SitemapPage() { return null; }
 export async function getServerSideProps({ res }) {
   try {
     const result = await getArticles({ limit: 1000 });
-    const sitemap = generateSitemap(result.documents);
+    const sitemap = generateSitemap(result?.documents || []);
     res.setHeader('Content-Type', 'application/xml');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600');
     res.write(sitemap);
     res.end();
   } catch {
     res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600');
     res.write(generateSitemap([]));
     res.end();
   }

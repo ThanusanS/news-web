@@ -87,11 +87,13 @@ export default function AllPostsPage() {
           className="form-input w-auto"
         >
           <option value="">All Categories</option>
-          <option value="sri-lanka">Sri Lanka</option>
+          <option value="sri-lanka">Sri Lanka News 🇱🇰</option>
           <option value="tech-news">Tech News</option>
-          <option value="ai-tutorials">AI Tutorials</option>
-          <option value="programming">Programming</option>
-          <option value="world">World</option>
+          <option value="sports">Sports</option>
+          <option value="ai-tutorials">AI & Innovation</option>
+          <option value="jobs-careers">Jobs & Careers</option>
+          <option value="education">Education</option>
+          <option value="world">World News</option>
         </select>
         <select
           value={status}

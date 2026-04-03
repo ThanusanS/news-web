@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import toast from 'react-hot-toast';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { FiCheck, FiMap, FiCpu, FiBarChart2 } from 'react-icons/fi';
 
 export default function SeoPage() {
   const [saved, setSaved] = useState(false);
@@ -149,7 +150,7 @@ export default function SeoPage() {
           </div>
 
           <button type="submit" className="btn-primary w-full py-2.5">
-            {saved ? '✓ Saved!' : 'Save SEO Settings'}
+            {saved ? <span className="inline-flex items-center gap-1.5"><FiCheck size={14} /> Saved</span> : 'Save SEO Settings'}
           </button>
         </form>
 
@@ -175,16 +176,16 @@ export default function SeoPage() {
             <h3 className="mb-3 text-sm font-semibold">Generate Files</h3>
             <div className="space-y-2">
               {[
-                { label: '🗺 Generate sitemap.xml', note: 'Auto-includes all published URLs' },
-                { label: '🤖 Generate robots.txt', note: 'Blocks admin, allows all crawlers' },
-                { label: '📊 Submit to Search Console', note: 'Ping Google after new posts' },
+                { label: 'Generate sitemap.xml', note: 'Auto-includes all published URLs', Icon: FiMap },
+                { label: 'Generate robots.txt', note: 'Blocks admin, allows all crawlers', Icon: FiCpu },
+                { label: 'Submit to Search Console', note: 'Ping Google after new posts', Icon: FiBarChart2 },
               ].map((item) => (
                 <button
                   key={item.label}
                   onClick={() => toast.success(`${item.label} — done!`)}
                   className="group w-full rounded-lg bg-stone-50 p-3 text-left transition-all hover:bg-accent hover:text-white dark:bg-neutral-800"
                 >
-                  <div className="text-sm font-medium">{item.label}</div>
+                  <div className="text-sm font-medium inline-flex items-center gap-2"><item.Icon size={14} /> {item.label}</div>
                   <div className="mt-0.5 text-xs text-stone-400 group-hover:text-white/70">
                     {item.note}
                   </div>

@@ -5,7 +5,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { databases, DB_ID, SUBSCRIBERS_COL, Query } from '../../lib/appwrite';
 import { formatNumber } from '../../utils/helpers';
 import toast from 'react-hot-toast';
-import { FiDownload, FiMail, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiDownload, FiMail, FiTrash2, FiSearch, FiUsers, FiTrendingUp } from 'react-icons/fi';
 
 export default function SubscribersPage() {
   const [subscribers, setSubscribers] = useState([]);
@@ -58,12 +58,12 @@ export default function SubscribersPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Subscribers', value: formatNumber(total), icon: '📬' },
-          { label: 'This Week', value: '+340', icon: '📈' },
-          { label: 'Open Rate (est.)', value: '24.6%', icon: '📧' },
+          { label: 'Total Subscribers', value: formatNumber(total), Icon: FiUsers },
+          { label: 'This Week', value: '+340', Icon: FiTrendingUp },
+          { label: 'Open Rate (est.)', value: '24.6%', Icon: FiMail },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl p-4">
-            <div className="text-2xl mb-1">{s.icon}</div>
+            <div className="mb-2 text-accent"><s.Icon size={20} /></div>
             <div className="font-head text-2xl font-black text-stone-900 dark:text-neutral-100">{s.value}</div>
             <div className="text-xs text-stone-500 dark:text-neutral-500">{s.label}</div>
           </div>

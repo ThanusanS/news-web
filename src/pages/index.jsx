@@ -4,85 +4,18 @@ import ArticleCard from '../components/ArticleCard';
 import Sidebar from '../components/Sidebar';
 import AdSense from '../components/AdSense';
 import Link from 'next/link';
-import { FiCode, FiCpu, FiFileText } from 'react-icons/fi';
+import { FiCode, FiCpu, FiFileText, FiActivity, FiBriefcase, FiBookOpen } from 'react-icons/fi';
 import { getArticles, getTrendingArticles } from '../lib/appwrite';
 
-// Fallback demo articles for when Appwrite is not yet configured
-const DEMO_ARTICLES = [
-  {
-    $id: '1',
-    slug: 'sri-lanka-digital-economy-2026',
-    title: "Sri Lanka's Digital Economy Reaches Record $8.5B — Government Targets $25B by 2030",
-    category: 'sri-lanka',
-    author: 'Nimal Perera',
-    publishedAt: new Date().toISOString(),
-    views: 24830,
-    excerpt:
-      "Strong performance in tourism, exports and digital services drives Sri Lanka's digital transformation.",
-    content: 'Lorem ipsum '.repeat(200),
-  },
-  {
-    $id: '2',
-    slug: 'chatgpt-guide-2026',
-    title: 'How to Use ChatGPT for Content Creation — Complete 2026 Guide',
-    category: 'ai-tutorials',
-    author: 'Kasun Silva',
-    publishedAt: new Date().toISOString(),
-    views: 18400,
-    excerpt:
-      'Master ChatGPT with proven prompting techniques for writing, coding, research and business tasks.',
-    content: 'Lorem ipsum '.repeat(200),
-  },
-  {
-    $id: '3',
-    slug: 'apple-wwdc-2026',
-    title: 'Apple WWDC 2026: M5 Chip, iOS 20 & AI-Native Siri Unveiled',
-    category: 'tech-news',
-    author: 'Ravi De Silva',
-    publishedAt: new Date().toISOString(),
-    views: 12200,
-    excerpt: "Apple's biggest developer conference brought major AI upgrades across all platforms.",
-    content: 'Lorem ipsum '.repeat(200),
-  },
-  {
-    $id: '4',
-    slug: 'react-19-guide',
-    title: 'React 19 Complete Guide: Server Components, Actions & New Hooks',
-    category: 'programming',
-    author: 'Janaka Fernando',
-    publishedAt: new Date().toISOString(),
-    views: 9800,
-    excerpt:
-      'Everything changed in React 19. Here is your complete guide with real project examples.',
-    content: 'Lorem ipsum '.repeat(200),
-  },
-  {
-    $id: '5',
-    slug: 'prompt-engineering-2026',
-    title: 'Master Prompt Engineering: 20 Techniques That Actually Work in 2026',
-    category: 'ai-tutorials',
-    author: 'Sunil Dias',
-    publishedAt: new Date().toISOString(),
-    views: 15600,
-    excerpt:
-      'From chain-of-thought to meta-prompts, these battle-tested techniques will transform how you use AI.',
-    content: 'Lorem ipsum '.repeat(200),
-  },
-  {
-    $id: '6',
-    slug: 'sri-lanka-tourism-record',
-    title: 'Record 2.1 Million Tourists Visit Sri Lanka in Q1 2026 — Europe Leads',
-    category: 'sri-lanka',
-    author: 'Amila Perera',
-    publishedAt: new Date().toISOString(),
-    views: 8300,
-    excerpt:
-      "Sri Lanka's tourism sector continues its remarkable post-pandemic recovery with record-breaking figures.",
-    content: 'Lorem ipsum '.repeat(200),
-  },
-];
-
 export default function HomePage({ latestArticles, trendingArticles, heroArticle, sideArticles }) {
+  const getSectionArticles = (category) => {
+    const exactMatches = latestArticles.filter((article) => article.category === category);
+    if (exactMatches.length >= 3) return exactMatches.slice(0, 3);
+
+    const fallback = latestArticles.filter((article) => article.category !== category);
+    return [...exactMatches, ...fallback].slice(0, 3);
+  };
+
   return (
     <>
       <NextSeo
@@ -203,18 +136,18 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                 <AdSense type="inArticle" />
               </div>
 
-              {/* AI Tutorials */}
+              {/* AI & Innovation */}
               <div className="mb-8">
                 <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
                   <h2 className="section-title">
                     <FiCpu className="mr-2 inline-block" size={16} />
-                    AI Tutorials
+                    AI & Innovation
                   </h2>
                   <Link
                     href="/category/ai-tutorials"
                     className="text-xs font-bold text-accent hover:underline"
                   >
-                    All Tutorials →
+                    All AI & Innovation →
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -250,6 +183,69 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                     ))}
                 </div>
               </div>
+
+              {/* Sports */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">
+                    <FiActivity className="mr-2 inline-block" size={16} />
+                    Sports
+                  </h2>
+                  <Link
+                    href="/category/sports"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All Sports →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('sports').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Jobs & Careers */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">
+                    <FiBriefcase className="mr-2 inline-block" size={16} />
+                    Jobs & Careers
+                  </h2>
+                  <Link
+                    href="/category/jobs-careers"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All Jobs →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('jobs-careers').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Education */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">
+                    <FiBookOpen className="mr-2 inline-block" size={16} />
+                    Education
+                  </h2>
+                  <Link
+                    href="/category/education"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All Education →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('education').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Sidebar */}
@@ -270,15 +266,13 @@ export async function getStaticProps() {
 
     const latestArticles = latestRes.status === 'fulfilled' ? latestRes.value.documents : [];
     const trendingArticles = trendingRes.status === 'fulfilled' ? trendingRes.value.documents : [];
-    const safeLatest = latestArticles.length ? latestArticles : DEMO_ARTICLES;
-    const safeTrending = trendingArticles.length ? trendingArticles : safeLatest.slice(0, 5);
-    const heroArticle = safeLatest.find((a) => a?.featuredImage) || safeLatest[0] || null;
-    const sideArticles = safeLatest.filter((a) => a?.$id !== heroArticle?.$id).slice(0, 4);
+    const heroArticle = latestArticles.find((a) => a?.featuredImage) || latestArticles[0] || null;
+    const sideArticles = latestArticles.filter((a) => a?.$id !== heroArticle?.$id).slice(0, 4);
 
     return {
       props: {
-        latestArticles: safeLatest,
-        trendingArticles: safeTrending,
+        latestArticles,
+        trendingArticles,
         heroArticle,
         sideArticles,
       },
@@ -287,10 +281,10 @@ export async function getStaticProps() {
   } catch {
     return {
       props: {
-        latestArticles: DEMO_ARTICLES,
-        trendingArticles: DEMO_ARTICLES.slice(0, 5),
-        heroArticle: DEMO_ARTICLES[0],
-        sideArticles: DEMO_ARTICLES.slice(1, 5),
+        latestArticles: [],
+        trendingArticles: [],
+        heroArticle: null,
+        sideArticles: [],
       },
       revalidate: 60,
     };

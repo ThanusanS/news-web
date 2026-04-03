@@ -49,12 +49,12 @@ export default function AnalyticsPage() {
   ];
 
   const countries = [
-    { label: '🇱🇰 Sri Lanka', value: '38,220', percent: 45 },
-    { label: '🇮🇳 India', value: '16,840', percent: 20 },
-    { label: '🇬🇧 United Kingdom', value: '8,440', percent: 10 },
-    { label: '🇺🇸 United States', value: '6,740', percent: 8 },
-    { label: '🇦🇺 Australia', value: '4,200', percent: 5 },
-    { label: '🌍 Other', value: '9,560', percent: 12 },
+    { label: 'Sri Lanka', value: '38,220', percent: 45 },
+    { label: 'India', value: '16,840', percent: 20 },
+    { label: 'United Kingdom', value: '8,440', percent: 10 },
+    { label: 'United States', value: '6,740', percent: 8 },
+    { label: 'Australia', value: '4,200', percent: 5 },
+    { label: 'Other', value: '9,560', percent: 12 },
   ];
 
   return (
@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
 
       {/* Google Analytics embed notice */}
       <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <div className="text-blue-500 text-xl shrink-0">ℹ️</div>
+        <div className="text-blue-500 text-xl shrink-0"><FiGlobe size={20} /></div>
         <div>
           <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Connect Google Analytics 4</p>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Add your GA4 Measurement ID in <strong>SEO Settings</strong> to embed live analytics here. The stats below are simulated examples.</p>

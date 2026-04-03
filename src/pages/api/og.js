@@ -9,7 +9,10 @@ export default function handler(req, res) {
   const catColors = {
     'sri lanka': '#C8102E',
     'tech news': '#1A3A5C',
+    sports: '#047857',
     'ai tutorials': '#4338CA',
+    'jobs careers': '#C2410C',
+    education: '#0369A1',
     'programming': '#15803D',
     'world': '#7C3AED',
     'business': '#B45309',

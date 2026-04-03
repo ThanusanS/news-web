@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { databases, DB_ID, COMMENTS_COL, Query } from '../../lib/appwrite';
 import toast from 'react-hot-toast';
-import { FiCheck, FiTrash2, FiExternalLink } from 'react-icons/fi';
+import { FiCheck, FiTrash2, FiExternalLink, FiMessageSquare } from 'react-icons/fi';
 
 export default function CommentsPage() {
   const [comments, setComments] = useState([]);
@@ -126,9 +126,9 @@ export default function CommentsPage() {
         </div>
       ) : comments.length === 0 ? (
         <div className="rounded-xl border border-stone-200 bg-white p-12 text-center dark:border-neutral-800 dark:bg-neutral-900">
-          <div className="mb-3 text-5xl">💬</div>
+          <div className="mb-3 flex justify-center text-stone-300 dark:text-neutral-600"><FiMessageSquare size={34} /></div>
           <p className="text-stone-500 dark:text-neutral-500">
-            {filter === 'pending' ? 'No pending comments. All caught up! 🎉' : 'No comments found.'}
+            {filter === 'pending' ? 'No pending comments. All caught up.' : 'No comments found.'}
           </p>
         </div>
       ) : (

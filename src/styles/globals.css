@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +9,8 @@
 
   body {
     @apply bg-stone-50 font-body text-stone-900 antialiased transition-colors duration-300;
+    background-image: radial-gradient(circle at 10% -10%, rgba(181, 18, 43, 0.08), transparent 40%),
+      radial-gradient(circle at 92% -22%, rgba(20, 50, 77, 0.09), transparent 45%);
   }
 
   .dark body,
@@ -21,7 +22,7 @@
 @layer components {
   /* ── Navbar ── */
   .nav-link {
-    @apply border-b-2 border-transparent px-3 py-1 text-sm font-medium text-stone-600 transition-all duration-200 hover:border-accent hover:text-accent dark:text-neutral-400;
+    @apply border-b-2 border-transparent px-2.5 py-1 text-sm font-semibold text-stone-700 transition-all duration-150 hover:border-accent hover:text-accent dark:text-neutral-300;
   }
   .nav-link.active {
     @apply border-accent text-accent;
@@ -29,7 +30,7 @@
 
   /* ── Cards ── */
   .article-card {
-    @apply cursor-pointer overflow-hidden rounded-lg border border-stone-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900;
+    @apply cursor-pointer overflow-hidden rounded-lg border border-stone-200 bg-white transition-all duration-150 hover:border-accent/60 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900;
   }
 
   .cat-badge {
@@ -42,7 +43,7 @@
 
   /* ── Buttons ── */
   .btn-primary {
-    @apply rounded bg-accent px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90;
+    @apply rounded bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md;
   }
   .btn-secondary {
     @apply rounded border border-stone-200 bg-stone-100 px-4 py-2 text-sm font-semibold text-stone-700 transition-all hover:border-accent hover:text-accent dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300;
@@ -50,12 +51,12 @@
 
   /* ── Form inputs ── */
   .form-input {
-    @apply w-full rounded border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-900 transition-colors focus:border-accent focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100;
+    @apply w-full rounded border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100;
   }
 
   /* ── Section header ── */
   .section-title {
-    @apply flex items-center gap-2 font-head text-xl font-bold text-stone-900 dark:text-neutral-100;
+    @apply flex items-center gap-2 font-head text-xl font-bold text-stone-950 dark:text-neutral-100;
   }
   .section-title::before {
     content: '';
@@ -64,7 +65,7 @@
 
   /* ── Tag ── */
   .tag-pill {
-    @apply cursor-pointer rounded border border-stone-200 bg-stone-100 px-2 py-1 text-xs text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400;
+    @apply cursor-pointer rounded border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-stone-700 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400;
   }
 
   /* ── Ad placeholder ── */
@@ -172,6 +173,15 @@
   .article-prose .image-caption {
     @apply -mt-3 mb-6 text-center text-xs italic text-stone-500 dark:text-neutral-500;
   }
+  .article-prose .social-embed {
+    @apply my-6 rounded-lg border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200;
+  }
+  .article-prose .social-embed p {
+    @apply mb-0;
+  }
+  .article-prose .social-embed strong {
+    @apply mr-1 font-semibold;
+  }
   .article-prose::after {
     content: '';
     display: block;
@@ -187,6 +197,11 @@
   }
 }
 
+::selection {
+  background: rgba(200, 16, 46, 0.2);
+  color: #111827;
+}
+
 /* ── Breaking ticker ── */
 @keyframes ticker {
   0% {
@@ -197,15 +212,46 @@
   }
 }
 .ticker-anim {
-  animation: ticker 30s linear infinite;
+  animation: ticker 40s linear infinite;
 }
 .ticker-anim:hover {
   animation-play-state: paused;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #B5122B;
+  outline-offset: 2px;
+}
+
 @media (max-width: 768px) {
   .ticker-anim {
     animation-duration: 16s;
+  }
+}
+
+.route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  background: linear-gradient(90deg, #B5122B 0%, #F97316 45%, #B5122B 100%);
+  background-size: 180% 100%;
+  animation: route-progress-move 1s linear infinite;
+  box-shadow: 0 1px 6px rgba(181, 18, 43, 0.35);
+}
+
+@keyframes route-progress-move {
+  0% {
+    background-position: 180% 0;
+  }
+  100% {
+    background-position: -180% 0;
   }
 }
 

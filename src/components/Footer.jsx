@@ -2,12 +2,14 @@ import Link from 'next/link';
 import Newsletter from './Newsletter';
 
 const CATEGORIES = [
-  { label: 'Sri Lanka News', href: '/category/sri-lanka' },
-  { label: 'Tech News', href: '/category/tech-news' },
-  { label: 'AI Tutorials', href: '/category/ai-tutorials' },
-  { label: 'Programming', href: '/category/programming' },
+  { label: 'Home', href: '/' },
+  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
   { label: 'World News', href: '/category/world' },
-  { label: 'Business', href: '/category/business' },
+  { label: 'Sports', href: '/category/sports' },
+  { label: 'Tech News', href: '/category/tech-news' },
+  { label: 'AI & Innovation', href: '/category/ai-tutorials' },
+  { label: 'Jobs & Careers', href: '/category/jobs-careers' },
+  { label: 'Education', href: '/category/education' },
 ];
 
 const LINKS = [
@@ -16,6 +18,7 @@ const LINKS = [
   { label: 'Write For Us', href: '/write-for-us' },
   { label: 'Advertise', href: '/advertise' },
   { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms & Conditions', href: '/terms' },
   { label: 'Sitemap', href: '/sitemap.xml' },
 ];
 
@@ -120,6 +123,9 @@ export default function Footer() {
             © 2026 CeylonUpdates.com · All rights reserved · Built in Sri Lanka
           </p>
           <div className="flex gap-4">
+            <Link href="/contact" className="text-xs text-stone-400 hover:text-accent">
+              Contact
+            </Link>
             <Link href="/privacy" className="text-xs text-stone-400 hover:text-accent">
               Privacy
             </Link>

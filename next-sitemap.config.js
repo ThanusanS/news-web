@@ -13,11 +13,8 @@ module.exports = {
   ],
   robotsTxtOptions: {
     policies: [
-      { userAgent: '*', allow: '/', disallow: ['/admin/', '/api/'] },
+      { userAgent: '*', allow: '/', disallow: ['/admin/', '/api/', '/_next/', '/search?*'] },
       { userAgent: 'Googlebot', allow: '/' },
-    ],
-    additionalSitemaps: [
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com'}/sitemap.xml`,
     ],
   },
   transform: async (config, path) => {

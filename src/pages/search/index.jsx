@@ -89,7 +89,7 @@ export default function SearchPage() {
 
           {!loading && searched && results.length === 0 && (
             <div className="text-center py-16 text-stone-400 dark:text-neutral-600">
-              <div className="text-5xl mb-4">🔍</div>
+              <div className="mb-4 flex justify-center text-accent"><FiSearch size={44} /></div>
               <p className="text-lg font-semibold mb-2">No results for "{query}"</p>
               <p className="text-sm">Try different keywords or browse our categories.</p>
             </div>

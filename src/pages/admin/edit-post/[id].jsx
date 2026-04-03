@@ -26,21 +26,25 @@ const RichEditor = dynamic(() => import('../../../components/RichEditor'), {
 });
 
 const CATEGORIES = [
-  { value: 'sri-lanka', label: '🇱🇰 Sri Lanka' },
-  { value: 'tech-news', label: '💻 Tech News' },
-  { value: 'ai-tutorials', label: '🤖 AI Tutorials' },
-  { value: 'programming', label: '🐍 Programming' },
-  { value: 'world', label: '🌍 World' },
-  { value: 'business', label: '💰 Business' },
+  { value: 'sri-lanka', label: 'Sri Lanka News 🇱🇰' },
+  { value: 'tech-news', label: 'Tech News' },
+  { value: 'sports', label: 'Sports' },
+  { value: 'ai-tutorials', label: 'AI & Innovation' },
+  { value: 'jobs-careers', label: 'Jobs & Careers' },
+  { value: 'education', label: 'Education' },
+  { value: 'world', label: 'World News' },
 ];
 
 export default function EditPostPage() {
   const router = useRouter();
   const { id } = router.query;
+  const AUTOSAVE_KEY = id ? `ceylonupdates.editpost.autosave.${id}` : null;
+  const REVISIONS_KEY = AUTOSAVE_KEY ? `${AUTOSAVE_KEY}.revisions` : null;
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
+  const [revisions, setRevisions] = useState([]);
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaLoading, setMediaLoading] = useState(false);
   const [showThumbMediaPicker, setShowThumbMediaPicker] = useState(false);
@@ -50,17 +54,88 @@ export default function EditPostPage() {
     if (!id) return;
     getArticleById(id)
       .then((doc) => {
-        setForm({ ...doc, tags: Array.isArray(doc.tags) ? doc.tags.join(', ') : doc.tags || '' });
-        setScheduledAt(doc.publishedAt ? new Date(doc.publishedAt).toISOString().slice(0, 16) : '');
+        const baseForm = {
+          ...doc,
+          tags: Array.isArray(doc.tags) ? doc.tags.join(', ') : doc.tags || '',
+        };
+        let restored = null;
+        try {
+          if (AUTOSAVE_KEY) {
+            restored = JSON.parse(localStorage.getItem(AUTOSAVE_KEY) || 'null');
+          }
+        } catch {}
+
+        setForm(restored?.form ? { ...baseForm, ...restored.form } : baseForm);
+        const scheduleValue = restored?.scheduledAt
+          || (doc.publishedAt ? new Date(doc.publishedAt).toISOString().slice(0, 16) : '');
+        setScheduledAt(scheduleValue);
+        try {
+          if (REVISIONS_KEY) {
+            const revRaw = localStorage.getItem(REVISIONS_KEY);
+            if (revRaw) {
+              const parsedRevs = JSON.parse(revRaw);
+              if (Array.isArray(parsedRevs)) {
+                setRevisions(parsedRevs);
+              }
+            }
+          }
+        } catch {}
         setLoading(false);
       })
       .catch(() => {
         toast.error('Article not found.');
         router.push('/admin/posts');
       });
-  }, [id]);
+  }, [id, REVISIONS_KEY]);
+
+  useEffect(() => {
+    if (!AUTOSAVE_KEY || !form) return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ form, scheduledAt, ts: Date.now() }));
+      } catch {}
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [AUTOSAVE_KEY, form, scheduledAt]);
+
+  useEffect(() => {
+    if (!REVISIONS_KEY || !form) return;
+    try {
+      localStorage.setItem(REVISIONS_KEY, JSON.stringify(revisions));
+    } catch {}
+  }, [REVISIONS_KEY, revisions, form]);
+
+  useEffect(() => {
+    if (!form || (!form.title && !form.content)) return;
+    const interval = setInterval(() => {
+      createRevision('Auto');
+    }, 120000);
+    return () => clearInterval(interval);
+  }, [form?.title, form?.content, scheduledAt]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  function createRevision(label = 'Manual') {
+    if (!form || (!form.title && !form.content)) return;
+    const snapshot = {
+      id: Date.now(),
+      label,
+      savedAt: new Date().toISOString(),
+      form,
+      scheduledAt,
+    };
+    setRevisions((prev) => [snapshot, ...prev].slice(0, 8));
+    if (label === 'Manual') {
+      toast.success('Revision snapshot saved.');
+    }
+  }
+
+  function restoreRevision(snapshot) {
+    if (!snapshot?.form) return;
+    setForm(snapshot.form);
+    setScheduledAt(snapshot.scheduledAt || '');
+    toast.success('Revision restored.');
+  }
 
   function formatUploadError(err) {
     const msg = err?.message || 'Image upload failed.';
@@ -245,6 +320,8 @@ export default function EditPostPage() {
               ? 'Article updated and published.'
               : 'Draft saved.';
       toast.success(successMessage);
+      if (AUTOSAVE_KEY) localStorage.removeItem(AUTOSAVE_KEY);
+      if (REVISIONS_KEY) localStorage.removeItem(REVISIONS_KEY);
       router.push('/admin/posts');
     } catch (err) {
       toast.error('Save failed: ' + err.message);
@@ -261,6 +338,23 @@ export default function EditPostPage() {
       </AdminLayout>
     );
   }
+
+  const textContent = String(form?.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = textContent ? textContent.split(' ').length : 0;
+  const charCount = textContent.length;
+  const imageTags = String(form?.content || '').match(/<img\b[^>]*>/gi) || [];
+  const imageAltCount = imageTags.filter((tag) => /\salt="[^\"]*\S[^\"]*"/i.test(tag)).length;
+  const seoChecks = [
+    { label: 'Title length between 30-60', pass: (form?.title || '').length >= 30 && (form?.title || '').length <= 60 },
+    { label: 'Meta description 120-155 chars', pass: (form?.metaDescription || '').length >= 120 && (form?.metaDescription || '').length <= 155 },
+    { label: 'Focus keyword appears in title', pass: !!form?.focusKeyword && (form?.title || '').toLowerCase().includes(form.focusKeyword.toLowerCase()) },
+    { label: 'Focus keyword appears early in content', pass: !!form?.focusKeyword && String(form?.content || '').toLowerCase().slice(0, 800).includes(form.focusKeyword.toLowerCase()) },
+    { label: 'Has featured image', pass: !!form?.featuredImage },
+    { label: 'Images include alt text', pass: imageTags.length === 0 || imageAltCount === imageTags.length },
+    { label: 'Has internal link', pass: /href="\//i.test(String(form?.content || '')) },
+    { label: 'Has external link', pass: /href="https?:\/\//i.test(String(form?.content || '')) },
+  ];
+  const seoScore = Math.round((seoChecks.filter((item) => item.pass).length / seoChecks.length) * 100);
 
   return (
     <AdminLayout title={`Edit: ${form?.title?.slice(0, 40) || ''}...`}>
@@ -313,6 +407,12 @@ export default function EditPostPage() {
         <div className="space-y-4">
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Update</h3>
+            <div className="mb-3 rounded bg-stone-50 px-3 py-2 text-xs text-stone-600 dark:bg-neutral-800 dark:text-neutral-300">
+              SEO Score: <span className="font-bold">{seoScore}/100</span>
+            </div>
+            <div className="mb-3 rounded bg-stone-50 px-3 py-2 text-xs text-stone-600 dark:bg-neutral-800 dark:text-neutral-300">
+              {wordCount} words · {charCount} characters
+            </div>
             <div className="mb-3 rounded bg-stone-50 px-3 py-2 text-xs text-stone-500 dark:bg-neutral-800">
               Status:{' '}
               <span
@@ -331,6 +431,13 @@ export default function EditPostPage() {
               className="form-input mb-3 text-xs"
             />
             <div className="space-y-2">
+              <button
+                onClick={() => createRevision('Manual')}
+                disabled={saving || (!form?.title && !form?.content)}
+                className="w-full rounded border border-stone-300 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Save Revision Snapshot
+              </button>
               <button
                 onClick={() => handleSave('published')}
                 disabled={saving}
@@ -363,6 +470,26 @@ export default function EditPostPage() {
                 </a>
               )}
             </div>
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">Revision History</h3>
+            {revisions.length === 0 ? (
+              <p className="text-xs text-stone-400 dark:text-neutral-500">No snapshots yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {revisions.map((rev) => (
+                  <button
+                    key={rev.id}
+                    type="button"
+                    onClick={() => restoreRevision(rev)}
+                    className="w-full rounded border border-stone-200 px-3 py-2 text-left text-xs text-stone-600 hover:border-accent hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    <span className="font-semibold">{rev.label}</span> · {new Date(rev.savedAt).toLocaleString()}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3 rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
@@ -599,6 +726,42 @@ export default function EditPostPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-stone-500">
+                OG Title
+              </label>
+              <input
+                type="text"
+                value={form.ogTitle || ''}
+                onChange={set('ogTitle')}
+                className="form-input"
+                maxLength={100}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-stone-500">
+                OG Description
+              </label>
+              <textarea
+                value={form.ogDescription || ''}
+                onChange={set('ogDescription')}
+                className="form-input resize-none"
+                rows={3}
+                maxLength={200}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-stone-500">
+                Canonical URL (advanced)
+              </label>
+              <input
+                type="url"
+                value={form.canonicalUrl || ''}
+                onChange={set('canonicalUrl')}
+                className="form-input"
+                placeholder="https://ceylonupdates.com/your-article"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-stone-500">
                 Tags
               </label>
               <input
@@ -609,6 +772,15 @@ export default function EditPostPage() {
                 placeholder="Tag1, Tag2, Tag3"
               />
             </div>
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="text-sm font-semibold">SEO Checklist</h3>
+            {seoChecks.map((item) => (
+              <p key={item.label} className={`text-xs ${item.pass ? 'text-green-600' : 'text-stone-500 dark:text-neutral-400'}`}>
+                {item.pass ? 'PASS' : 'TODO'} {item.label}
+              </p>
+            ))}
           </div>
         </div>
       </div>

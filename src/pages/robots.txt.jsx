@@ -18,6 +18,7 @@ User-agent: Bingbot
 Allow: /
 Disallow: /admin/
 
+Host: ${SITE_URL}
 Sitemap: ${SITE_URL}/sitemap.xml
 `;
   res.setHeader('Content-Type', 'text/plain');

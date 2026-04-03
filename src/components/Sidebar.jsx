@@ -62,7 +62,7 @@ export default function Sidebar({ trendingArticles = [] }) {
       )}
 
       {/* Tags */}
-      <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="hidden xl:block rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
         <h3 className="mb-3 border-b border-stone-200 pb-2 font-head text-base font-bold dark:border-neutral-800">
           Popular Tags
         </h3>
@@ -76,7 +76,7 @@ export default function Sidebar({ trendingArticles = [] }) {
       </div>
 
       {/* Newsletter compact */}
-      <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="hidden xl:block rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
         <h3 className="mb-1 font-head text-base font-bold">
           <FiMail className="mr-2 inline-block" size={15} />
           Newsletter

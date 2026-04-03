@@ -13,6 +13,7 @@ import {
   buildBreadcrumbSchema,
   estimateReadTime,
 } from '../lib/seo';
+import { FiClock, FiShare2 } from 'react-icons/fi';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
 
@@ -194,6 +195,9 @@ export default function ArticlePage({ article, relatedArticles }) {
     description: article.metaDescription || article.excerpt,
     slug: article.slug,
     image: article.newsImage,
+    canonicalUrl: article.canonicalUrl,
+    ogTitle: article.ogTitle,
+    ogDescription: article.ogDescription,
     type: 'article',
     article: {
       publishedAt: article.publishedAt,
@@ -301,7 +305,7 @@ export default function ArticlePage({ article, relatedArticles }) {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3 text-xs text-stone-400 dark:text-neutral-600">
-              <span>⏱ {readTime} min read</span>
+              <span className="inline-flex items-center gap-1.5"><FiClock size={13} /> {readTime} min read</span>
             </div>
 
             {/* Share buttons */}
@@ -320,7 +324,7 @@ export default function ArticlePage({ article, relatedArticles }) {
                 rel="noopener noreferrer"
                 className="rounded bg-black px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
               >
-                ✕ Tweet
+                X Tweet
               </a>
               <a
                 href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`}
@@ -328,7 +332,7 @@ export default function ArticlePage({ article, relatedArticles }) {
                 rel="noopener noreferrer"
                 className="rounded bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
               >
-                📱 WhatsApp
+                WhatsApp
               </a>
             </div>
           </div>
@@ -381,8 +385,8 @@ export default function ArticlePage({ article, relatedArticles }) {
 
           {/* Share bottom */}
           <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-5 text-center dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="mb-3 text-sm font-semibold text-stone-700 dark:text-neutral-300">
-              Found this useful? Share it 👇
+            <p className="mb-3 text-sm font-semibold text-stone-700 dark:text-neutral-300 inline-flex items-center gap-2">
+              <FiShare2 size={14} /> Found this useful? Share it
             </p>
             <div className="flex justify-center gap-3">
               <a
@@ -498,7 +502,7 @@ export default function ArticlePage({ article, relatedArticles }) {
 
 export async function getServerSideProps({ params, res }) {
   try {
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
 
     const article = await getArticleBySlug(params.slug);
     if (!article) return { notFound: true, props: {} };

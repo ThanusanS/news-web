@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import Link from 'next/link';
+import { FiAlertTriangle } from 'react-icons/fi';
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -22,7 +23,9 @@ export default class ErrorBoundary extends Component {
       return (
         <div className="min-h-[400px] flex items-center justify-center px-4">
           <div className="text-center max-w-md">
-            <div className="text-6xl mb-4">⚠️</div>
+            <div className="mb-4 flex justify-center">
+              <FiAlertTriangle size={56} className="text-amber-500" />
+            </div>
             <h2 className="font-head text-2xl font-bold text-stone-900 dark:text-neutral-100 mb-2">
               Something went wrong
             </h2>

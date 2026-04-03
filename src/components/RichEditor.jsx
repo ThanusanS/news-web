@@ -5,6 +5,10 @@ import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Youtube from '@tiptap/extension-youtube';
+import CharacterCount from '@tiptap/extension-character-count';
 import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Table from '@tiptap/extension-table';
@@ -34,6 +38,18 @@ const TOOLBAR_BUTTONS = [
     active: (e) => e.isActive('strike'),
   },
   {
+    label: 'U',
+    title: 'Underline',
+    action: (e) => e.chain().focus().toggleUnderline().run(),
+    active: (e) => e.isActive('underline'),
+  },
+  {
+    label: 'H1',
+    title: 'Heading 1',
+    action: (e) => e.chain().focus().toggleHeading({ level: 1 }).run(),
+    active: (e) => e.isActive('heading', { level: 1 }),
+  },
+  {
     label: 'H2',
     title: 'Heading 2',
     action: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(),
@@ -44,6 +60,12 @@ const TOOLBAR_BUTTONS = [
     title: 'Heading 3',
     action: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(),
     active: (e) => e.isActive('heading', { level: 3 }),
+  },
+  {
+    label: 'H4',
+    title: 'Heading 4',
+    action: (e) => e.chain().focus().toggleHeading({ level: 4 }).run(),
+    active: (e) => e.isActive('heading', { level: 4 }),
   },
   {
     label: '¶',
@@ -74,6 +96,30 @@ const TOOLBAR_BUTTONS = [
     title: 'Code block',
     action: (e) => e.chain().focus().toggleCodeBlock().run(),
     active: (e) => e.isActive('codeBlock'),
+  },
+  {
+    label: '<c>',
+    title: 'Inline code',
+    action: (e) => e.chain().focus().toggleCode().run(),
+    active: (e) => e.isActive('code'),
+  },
+  {
+    label: 'L',
+    title: 'Align left',
+    action: (e) => e.chain().focus().setTextAlign('left').run(),
+    active: (e) => e.isActive({ textAlign: 'left' }),
+  },
+  {
+    label: 'C',
+    title: 'Align center',
+    action: (e) => e.chain().focus().setTextAlign('center').run(),
+    active: (e) => e.isActive({ textAlign: 'center' }),
+  },
+  {
+    label: 'R',
+    title: 'Align right',
+    action: (e) => e.chain().focus().setTextAlign('right').run(),
+    active: (e) => e.isActive({ textAlign: 'right' }),
   },
   {
     label: '—',
@@ -208,6 +254,7 @@ const CustomImage = Image.extend({
 
 export default function RichEditor({ content, onChange, onUploadImage }) {
   const fileInputRef = useRef(null);
+  const isNormalizingRef = useRef(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [activeImageSrc, setActiveImageSrc] = useState('');
   const [activeImagePos, setActiveImagePos] = useState(null);
@@ -215,12 +262,43 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   const [mouseCropImage, setMouseCropImage] = useState('');
   const [mouseCropTargetPos, setMouseCropTargetPos] = useState(null);
   const [mouseCrop, setMouseCrop] = useState({ unit: '%', x: 10, y: 10, width: 80, height: 80 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  function normalizeLegacyListMarkup(html) {
+    let normalized = String(html || '').replace(/&nbsp;/g, ' ');
+
+    normalized = normalized.replace(
+      /<p>\s*(?:•|·|▪|\*)\s*<\/p>\s*<p>([\s\S]*?)<\/p>/gi,
+      '<ul><li>$1</li></ul>'
+    );
+
+    normalized = normalized.replace(
+      /<p>\s*(?:•|·|▪|\*|-)\s+([\s\S]*?)<\/p>/gi,
+      '<ul><li>$1</li></ul>'
+    );
+
+    normalized = normalized.replace(/<\/ul>\s*<ul>/gi, '');
+    normalized = normalized.replace(/<p>\s*<\/p>/gi, '');
+
+    return normalized;
+  }
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Underline,
       TextStyle,
       Color,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Youtube.configure({
+        controls: true,
+        nocookie: true,
+        HTMLAttributes: {
+          class: 'w-full aspect-video rounded-lg my-6',
+        },
+      }),
+      CharacterCount,
       CustomImage.configure({ inline: false, allowBase64: true }),
       Link.configure({
         openOnClick: false,
@@ -241,7 +319,20 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     ],
     content,
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      if (isNormalizingRef.current) return;
+
+      const rawHtml = editor.getHTML();
+      const normalizedHtml = normalizeLegacyListMarkup(rawHtml);
+
+      if (normalizedHtml !== rawHtml) {
+        isNormalizingRef.current = true;
+        editor.commands.setContent(normalizedHtml, false);
+        isNormalizingRef.current = false;
+        onChange(normalizedHtml);
+        return;
+      }
+
+      onChange(rawHtml);
     },
     editorProps: {
       attributes: {
@@ -492,6 +583,15 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     editor?.chain().focus().insertContent(`<p class="image-caption">${caption}</p>`).run();
   }
 
+  function setImageAltText() {
+    const target = resolveTargetImage();
+    if (!target) return;
+    const currentAlt = target.targetNode.attrs?.alt || '';
+    const alt = prompt('Image alt text (for SEO/accessibility):', currentAlt);
+    if (alt === null) return;
+    updateImageAttrs({ alt: alt.trim() });
+  }
+
   async function uploadAndInsertImage(event) {
     const file = event.target.files?.[0];
     event.target.value = '';
@@ -538,10 +638,11 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     }
 
     const href = normalizeUrl(trimmedUrl);
+    const openInNewTab = window.confirm('Open link in a new tab?');
     const attrs = {
       href,
-      target: '_blank',
-      rel: 'noopener noreferrer nofollow',
+      target: openInNewTab ? '_blank' : null,
+      rel: openInNewTab ? 'noopener noreferrer nofollow' : null,
     };
 
     const { from, empty } = editor.state.selection;
@@ -590,6 +691,32 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
 
   function addPdfLink() {
     insertResourceLink('Open PDF', 'PDF');
+  }
+
+  function addYouTube() {
+    if (!editor) return;
+    const url = prompt('YouTube URL:');
+    if (!url) return;
+    editor.commands.setYoutubeVideo({ src: url.trim() });
+  }
+
+  function addSocialEmbed(platform) {
+    if (!editor) return;
+    const url = prompt(`${platform} post URL:`);
+    if (!url) return;
+
+    const href = normalizeUrl(url);
+    if (!href) return;
+
+    const platformLabel = platform.toUpperCase();
+    const safeHref = href.replace(/"/g, '&quot;');
+    editor
+      .chain()
+      .focus()
+      .insertContent(
+        `<div class="social-embed" data-platform="${platform}"><p><strong>${platformLabel} Embed:</strong> <a href="${safeHref}" target="_blank" rel="noopener noreferrer nofollow">${safeHref}</a></p></div>`
+      )
+      .run();
   }
 
   function setTextColor(color) {
@@ -653,9 +780,14 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   const imageList = getImageList();
   const selectedImageIndex = imageList.findIndex((item) => item.pos === activeImagePos);
   const currentTextColor = editor.getAttributes('textStyle').color || '';
+  const words = editor.storage.characterCount?.words?.() || 0;
+  const characters = editor.storage.characterCount?.characters?.() || 0;
+  const wrapperClass = isFullscreen
+    ? 'fixed inset-0 z-[130] overflow-auto bg-stone-50 p-3 dark:bg-neutral-950'
+    : '';
 
   return (
-    <div>
+    <div className={wrapperClass}>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border-b border-stone-200 bg-stone-50 p-2 dark:border-neutral-700 dark:bg-neutral-800">
         {TOOLBAR_BUTTONS.map((btn) => (
@@ -720,6 +852,62 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
         >
           PDF URL
+        </button>
+        <button
+          type="button"
+          onClick={addYouTube}
+          title="Embed YouTube"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          YOUTUBE
+        </button>
+        <button
+          type="button"
+          onClick={() => addSocialEmbed('x')}
+          title="Embed X/Twitter post"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          X POST
+        </button>
+        <button
+          type="button"
+          onClick={() => addSocialEmbed('instagram')}
+          title="Embed Instagram post"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          INSTAGRAM
+        </button>
+        <button
+          type="button"
+          onClick={() => addSocialEmbed('tiktok')}
+          title="Embed TikTok post"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          TIKTOK
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsFocusMode((v) => !v)}
+          title="Distraction-free mode"
+          className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
+            isFocusMode
+              ? 'border-accent bg-accent text-white'
+              : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+          }`}
+        >
+          FOCUS
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsFullscreen((v) => !v)}
+          title="Fullscreen editor"
+          className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
+            isFullscreen
+              ? 'border-accent bg-accent text-white'
+              : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+          }`}
+        >
+          FULL
         </button>
         <div className="flex basis-full flex-wrap items-center gap-1 rounded border border-stone-200 bg-white/70 p-2 dark:border-neutral-700 dark:bg-neutral-900/60">
           <span className="mr-2 text-[10px] font-semibold tracking-wide text-stone-500 dark:text-neutral-400">
@@ -1054,12 +1242,27 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
             >
               Caption
             </button>
+            <button
+              type="button"
+              onClick={setImageAltText}
+              title="Set image alt text"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Alt Text
+            </button>
           </div>
         </div>
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} />
+      <div className={isFocusMode ? 'mx-auto max-w-3xl' : ''}>
+        <EditorContent editor={editor} />
+      </div>
+
+      <div className="flex items-center justify-between border-t border-stone-200 bg-white px-3 py-2 text-xs text-stone-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400">
+        <span>Words: {words}</span>
+        <span>Characters: {characters}</span>
+      </div>
 
       {mouseCropOpen && (
         <div className="fixed inset-0 z-[120] bg-black/70 p-4 sm:p-8">

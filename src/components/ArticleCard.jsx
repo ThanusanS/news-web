@@ -5,12 +5,15 @@ import { FiEye, FiFileText } from 'react-icons/fi';
 import { estimateReadTime } from '../lib/seo';
 
 const CATEGORY_COLORS = {
-  'sri-lanka': 'bg-red-100 text-red-800',
-  'tech-news': 'bg-blue-100 text-blue-800',
-  'ai-tutorials': 'bg-indigo-100 text-indigo-800',
-  programming: 'bg-green-100 text-green-800',
-  world: 'bg-purple-100 text-purple-800',
-  business: 'bg-yellow-100 text-yellow-800',
+  'sri-lanka': 'bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-200',
+  'tech-news': 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200',
+  sports: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200',
+  'ai-tutorials': 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200',
+  'jobs-careers': 'bg-orange-100 text-orange-900 dark:bg-orange-900/30 dark:text-orange-200',
+  education: 'bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-200',
+  programming: 'bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-200',
+  world: 'bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-200',
+  business: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-900/30 dark:text-yellow-200',
 };
 
 export default function ArticleCard({ article, variant = 'default' }) {
@@ -79,11 +82,11 @@ export default function ArticleCard({ article, variant = 'default' }) {
           {article.category?.replace(/-/g, ' ')}
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3.5 md:p-4">
         <h2 className="card-title mb-2 line-clamp-3 text-[1rem] transition-colors group-hover:text-accent">
           {article.title}
         </h2>
-        <p className="mb-4 line-clamp-2 flex-1 text-sm text-stone-500 dark:text-neutral-500">
+        <p className="mb-3 line-clamp-2 flex-1 text-sm text-stone-500 dark:text-neutral-500">
           {article.excerpt || ''}
         </p>
         <div className="mt-auto flex items-center justify-between text-xs text-stone-400 dark:text-neutral-600">
@@ -96,8 +99,8 @@ export default function ArticleCard({ article, variant = 'default' }) {
           <div className="flex items-center gap-2">
             <span>{readTime} min</span>
             {article.views > 0 && (
-              <span>
-                · <FiEye className="mr-1 inline-block" size={12} />
+              <span className="inline-flex items-center gap-1">
+                <FiEye className="inline-block" size={12} />
                 {viewsLabel}
               </span>
             )}

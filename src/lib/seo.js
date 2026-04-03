@@ -1,19 +1,32 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
 const SITE_NAME = 'CeylonUpdates.com';
 
-export function buildSeoProps({ title, description, slug, image, type = 'article', article }) {
+export function buildSeoProps({
+  title,
+  description,
+  slug,
+  image,
+  canonicalUrl,
+  ogTitle,
+  ogDescription,
+  type = 'article',
+  article,
+}) {
   const url = slug ? `${SITE_URL}/${slug}` : SITE_URL;
+  const canonical = canonicalUrl || url;
   const ogImage = image || `${SITE_URL}/og-default.jpg`;
+  const resolvedOgTitle = ogTitle || title;
+  const resolvedOgDescription = ogDescription || description;
 
   return {
     title: `${title} | ${SITE_NAME}`,
     description,
-    canonical: url,
+    canonical,
     openGraph: {
       type,
-      url,
-      title,
-      description,
+      url: canonical,
+      title: resolvedOgTitle,
+      description: resolvedOgDescription,
       site_name: SITE_NAME,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
       ...(article && {
@@ -28,8 +41,8 @@ export function buildSeoProps({ title, description, slug, image, type = 'article
     twitter: {
       cardType: 'summary_large_image',
       site: '@CeylonUpdates',
-      title,
-      description,
+      title: resolvedOgTitle,
+      description: resolvedOgDescription,
       image: ogImage,
     },
     additionalMetaTags: [

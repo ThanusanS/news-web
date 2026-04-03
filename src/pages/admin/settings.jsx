@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast from 'react-hot-toast';
-import { FiSave, FiRefreshCw } from 'react-icons/fi';
+import { FiSave, FiRefreshCw, FiSend, FiMail, FiAlertTriangle } from 'react-icons/fi';
 
 const TABS = ['General', 'SEO', 'Integrations', 'Email', 'Security'];
 
@@ -82,7 +82,7 @@ export default function SettingsPage() {
                 ))}
                 <div className="pt-2 border-t border-stone-100 dark:border-neutral-800 flex gap-3">
                   <button type="button" onClick={() => toast.success('sitemap.xml regenerated!')} className="btn-secondary text-sm flex items-center gap-2"><FiRefreshCw size={13} /> Regenerate Sitemap</button>
-                  <button type="button" onClick={() => toast.success('Pinged Google!')} className="btn-secondary text-sm">📡 Ping Google</button>
+                  <button type="button" onClick={() => toast.success('Pinged Google!')} className="btn-secondary text-sm inline-flex items-center gap-2"><FiSend size={13} /> Ping Google</button>
                 </div>
               </div>
             )}
@@ -120,7 +120,7 @@ export default function SettingsPage() {
                     <input type="text" defaultValue={f.value} placeholder={f.placeholder} className="form-input" />
                   </div>
                 ))}
-                <button type="button" onClick={() => toast.success('Test email sent!')} className="btn-secondary text-sm">📧 Send Test Email</button>
+                <button type="button" onClick={() => toast.success('Test email sent!')} className="btn-secondary text-sm inline-flex items-center gap-2"><FiMail size={13} /> Send Test Email</button>
               </div>
             )}
 
@@ -160,7 +160,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-              <h3 className="font-semibold text-amber-800 dark:text-amber-300 text-sm mb-1">⚠️ Remember</h3>
+              <h3 className="font-semibold text-amber-800 dark:text-amber-300 text-sm mb-1 inline-flex items-center gap-1.5"><FiAlertTriangle size={14} /> Remember</h3>
               <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
                 API keys and secrets should be stored in your <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">.env.local</code> file, not in the database. Settings here are for UI configuration only.
               </p>

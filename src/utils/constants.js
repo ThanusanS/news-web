@@ -14,12 +14,15 @@ export const SITE_CONFIG = {
 };
 
 export const CATEGORIES = [
-  { slug: 'sri-lanka',    label: 'Sri Lanka',    emoji: '🇱🇰', description: 'Latest news from Sri Lanka — politics, economy, sports and culture.', color: 'red',    keywords: ['Sri Lanka news', 'Colombo', 'Ceylon'] },
-  { slug: 'tech-news',   label: 'Tech News',    emoji: '💻', description: 'Global technology updates curated for South Asian readers.', color: 'blue',   keywords: ['technology news', 'gadgets', 'startups'] },
-  { slug: 'ai-tutorials',label: 'AI Tutorials', emoji: '🤖', description: 'Learn ChatGPT, Claude, Gemini and the best AI tools.', color: 'indigo', keywords: ['ChatGPT', 'AI tools', 'machine learning'] },
-  { slug: 'programming', label: 'Programming',  emoji: '🐍', description: 'In-depth tutorials on MERN, Python, React and more.', color: 'green',  keywords: ['programming', 'coding', 'web development'] },
-  { slug: 'world',       label: 'World',        emoji: '🌍', description: 'International news and global affairs.', color: 'purple', keywords: ['world news', 'international', 'global'] },
-  { slug: 'business',    label: 'Business',     emoji: '💰', description: 'Business news, markets and entrepreneurship.', color: 'yellow', keywords: ['business', 'economy', 'markets'] },
+  { slug: 'sri-lanka',    label: 'Sri Lanka News 🇱🇰',    iconKey: 'sri-lanka', description: 'Latest news from Sri Lanka — politics, economy, sports and culture.', color: 'red',    keywords: ['Sri Lanka news', 'Colombo', 'Ceylon'] },
+  { slug: 'tech-news',   label: 'Tech News',    iconKey: 'tech-news', description: 'Global technology updates curated for South Asian readers.', color: 'blue',   keywords: ['technology news', 'gadgets', 'startups'] },
+  { slug: 'sports',      label: 'Sports',       iconKey: 'sports', description: 'Sports highlights, cricket updates and match coverage.', color: 'emerald', keywords: ['sports news', 'cricket', 'football'] },
+  { slug: 'ai-tutorials',label: 'AI & Innovation', iconKey: 'ai-tutorials', description: 'Learn ChatGPT, Claude, Gemini and the best AI tools.', color: 'indigo', keywords: ['ChatGPT', 'AI tools', 'machine learning'] },
+  { slug: 'jobs-careers',label: 'Jobs & Careers', iconKey: 'jobs-careers', description: 'Career growth guides, hiring trends and job opportunities.', color: 'orange', keywords: ['jobs', 'careers', 'remote work'] },
+  { slug: 'education',   label: 'Education',    iconKey: 'education', description: 'Education updates, exams, universities and learning resources.', color: 'sky', keywords: ['education', 'universities', 'study tips'] },
+  { slug: 'programming', label: 'Programming',  iconKey: 'programming', description: 'In-depth tutorials on MERN, Python, React and more.', color: 'green',  keywords: ['programming', 'coding', 'web development'] },
+  { slug: 'world',       label: 'World News',        iconKey: 'world', description: 'International news and global affairs.', color: 'purple', keywords: ['world news', 'international', 'global'] },
+  { slug: 'business',    label: 'Business',     iconKey: 'business', description: 'Business news, markets and entrepreneurship.', color: 'yellow', keywords: ['business', 'economy', 'markets'] },
 ];
 
 export const AD_SLOTS = {
@@ -33,11 +36,13 @@ export const AD_SLOTS = {
 
 export const NAV_LINKS = [
   { label: 'Home',          href: '/' },
-  { label: 'Sri Lanka',     href: '/category/sri-lanka' },
-  { label: 'Tech',          href: '/category/tech-news' },
-  { label: 'AI Tutorials',  href: '/category/ai-tutorials' },
-  { label: 'Programming',   href: '/category/programming' },
-  { label: 'World',         href: '/category/world' },
+  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
+  { label: 'World News',    href: '/category/world' },
+  { label: 'Sports',        href: '/category/sports' },
+  { label: 'Tech News',     href: '/category/tech-news' },
+  { label: 'AI & Innovation', href: '/category/ai-tutorials' },
+  { label: 'Jobs & Careers', href: '/category/jobs-careers' },
+  { label: 'Education',     href: '/category/education' },
   { label: 'Search',        href: '/search' },
 ];
 

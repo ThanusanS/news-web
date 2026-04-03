@@ -11,7 +11,7 @@ export default function BookmarkButton({ article, className }) {
     e.preventDefault();
     e.stopPropagation();
     toggle(article);
-    toast.success(saved ? 'Bookmark removed' : '🔖 Article bookmarked!');
+    toast.success(saved ? 'Bookmark removed' : 'Article bookmarked!');
   }
 
   return (

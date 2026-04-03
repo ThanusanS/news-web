@@ -38,7 +38,7 @@ export default function BookmarksPage() {
               <FiBookmark size={48} className="mx-auto mb-4 text-stone-200 dark:text-neutral-700" />
               <h2 className="font-head text-xl font-bold text-stone-600 dark:text-neutral-400 mb-2">No saved articles yet</h2>
               <p className="text-stone-400 dark:text-neutral-600 text-sm mb-6">
-                Click the 🔖 Save button on any article to bookmark it for later reading.
+                Click the Save button on any article to bookmark it for later reading.
               </p>
               <Link href="/" className="btn-primary px-6 py-2.5">Browse Articles →</Link>
             </div>

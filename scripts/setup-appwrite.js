@@ -84,12 +84,12 @@ const COLLECTIONS = {
   },
 };
 
-console.log('📋 Appwrite Collection Schema\n');
+console.log('[Schema] Appwrite Collection Schema\n');
 console.log('Copy this information into your Appwrite Console:\n');
 console.log('=' .repeat(60));
 
 Object.entries(COLLECTIONS).forEach(([name, col]) => {
-  console.log(`\n📁 Collection: ${col.name} (ID: ${col.id})`);
+  console.log(`\n[Collection] ${col.name} (ID: ${col.id})`);
   console.log('   Attributes:');
   col.attributes.forEach((attr) => {
     console.log(`     - ${attr.key}: ${attr.type}${attr.required ? ' (required)' : ' (optional)'}${attr.default !== undefined ? ` [default: ${attr.default}]` : ''}`);
@@ -101,5 +101,5 @@ Object.entries(COLLECTIONS).forEach(([name, col]) => {
 });
 
 console.log('\n' + '='.repeat(60));
-console.log('\n✅ Use the SETUP.md guide to create these in your Appwrite console.');
+console.log('\n[Done] Use the SETUP.md guide to create these in your Appwrite console.');
 console.log('   Or use the Appwrite CLI: https://appwrite.io/docs/tooling/command-line\n');

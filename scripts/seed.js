@@ -101,7 +101,7 @@ async function ArticlePage({ params }) {
 ];
 
 async function seed() {
-  console.log('🌱 Starting seed...\n');
+  console.log('[Seed] Starting seed...\n');
   let created = 0;
   let skipped = 0;
 
@@ -113,19 +113,19 @@ async function seed() {
         allowComments: true,
         language: 'en',
       });
-      console.log(`  ✅ Created: ${article.title.slice(0, 60)}...`);
+      console.log(`  [OK] Created: ${article.title.slice(0, 60)}...`);
       created++;
     } catch (err) {
       if (err.code === 409) {
-        console.log(`  ⏭  Skipped (exists): ${article.slug}`);
+        console.log(`  [SKIP] Exists: ${article.slug}`);
         skipped++;
       } else {
-        console.error(`  ❌ Failed: ${article.title}\n     ${err.message}`);
+        console.error(`  [ERROR] Failed: ${article.title}\n     ${err.message}`);
       }
     }
   }
 
-  console.log(`\n✅ Seed complete — ${created} created, ${skipped} skipped.`);
+  console.log(`\n[Done] Seed complete - ${created} created, ${skipped} skipped.`);
   console.log('   Open http://localhost:3000 to see your articles!\n');
 }
 

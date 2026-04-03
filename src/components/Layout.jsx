@@ -26,10 +26,12 @@ export default function Layout({ children, title, description }) {
         )}
       </Head>
 
-      {/* Top banner ad */}
-      <div className="flex w-full justify-center border-b border-stone-200 bg-stone-100 py-2 dark:border-neutral-800 dark:bg-neutral-900">
-        <AdSense type="leaderboard" />
-      </div>
+      {/* Top banner ad (render only when a real AdSense ID is configured) */}
+      {hasRealAdsenseId && (
+        <div className="hidden md:flex w-full justify-center border-b border-stone-200 bg-stone-100 py-2 dark:border-neutral-800 dark:bg-neutral-900">
+          <AdSense type="leaderboard" />
+        </div>
+      )}
 
       <Navbar />
       <BreakingTicker />

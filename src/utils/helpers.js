@@ -84,10 +84,25 @@ export function getCategoryColors(category) {
       text: 'text-blue-700 dark:text-blue-400',
       border: 'border-blue-200',
     },
+    sports: {
+      bg: 'bg-emerald-100 dark:bg-emerald-900/20',
+      text: 'text-emerald-700 dark:text-emerald-400',
+      border: 'border-emerald-200',
+    },
     'ai-tutorials': {
       bg: 'bg-indigo-100 dark:bg-indigo-900/20',
       text: 'text-indigo-700 dark:text-indigo-400',
       border: 'border-indigo-200',
+    },
+    'jobs-careers': {
+      bg: 'bg-orange-100 dark:bg-orange-900/20',
+      text: 'text-orange-700 dark:text-orange-400',
+      border: 'border-orange-200',
+    },
+    education: {
+      bg: 'bg-sky-100 dark:bg-sky-900/20',
+      text: 'text-sky-700 dark:text-sky-400',
+      border: 'border-sky-200',
     },
     programming: {
       bg: 'bg-green-100 dark:bg-green-900/20',
@@ -115,7 +130,10 @@ export function getCategoryEmoji(category) {
   const map = {
     'sri-lanka': 'SL',
     'tech-news': 'TECH',
+    sports: 'SPORT',
     'ai-tutorials': 'AI',
+    'jobs-careers': 'JOBS',
+    education: 'EDU',
     programming: 'CODE',
     world: 'WORLD',
     business: 'BIZ',
