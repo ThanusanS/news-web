@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NextSeo } from 'next-seo';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -101,16 +101,75 @@ function normalizeEditorTableHtml(html = '') {
 }
 
 export default function ArticlePage({ article, relatedArticles }) {
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentNotice, setCommentNotice] = useState('');
+  const [commentForm, setCommentForm] = useState({
+    name: '',
+    content: '',
+  });
+
   const readTime = estimateReadTime(article?.content || '');
   const renderedContent = normalizeEditorTableHtml(
     normalizeEditorImageHtml(article?.content || '<p>Article content coming soon.</p>')
   );
+
+  async function loadComments() {
+    if (!article?.$id) return;
+    setCommentsLoading(true);
+    try {
+      const res = await fetch(`/api/comments?articleId=${encodeURIComponent(article.$id)}`);
+      const data = await res.json();
+      setComments(Array.isArray(data?.documents) ? data.documents : []);
+    } catch {
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
+
+  async function submitComment(e) {
+    e.preventDefault();
+    if (!article?.$id || commentSubmitting) return;
+
+    setCommentSubmitting(true);
+    setCommentNotice('');
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleId: article.$id,
+          name: commentForm.name,
+          content: commentForm.content,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setCommentNotice(data?.error || 'Failed to submit comment.');
+        return;
+      }
+
+      setCommentForm({ name: '', content: '' });
+      setCommentNotice(data?.message || 'Comment submitted for moderation.');
+    } catch {
+      setCommentNotice('Failed to submit comment. Please try again.');
+    } finally {
+      setCommentSubmitting(false);
+    }
+  }
 
   // Increment view count on load
   useEffect(() => {
     if (article?.$id) {
       incrementViews(article.$id, article.views || 0).catch(() => {});
     }
+  }, [article?.$id]);
+
+  useEffect(() => {
+    loadComments();
   }, [article?.$id]);
 
   if (!article) {
@@ -352,6 +411,66 @@ export default function ArticlePage({ article, relatedArticles }) {
               </a>
             </div>
           </div>
+
+          {/* Comments */}
+          <section className="mt-8 rounded-xl border border-stone-200 p-5 dark:border-neutral-800">
+            <h2 className="mb-4 text-lg font-bold text-stone-900 dark:text-neutral-100">
+              Comments
+            </h2>
+
+            <form onSubmit={submitComment} className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <input
+                value={commentForm.name}
+                onChange={(e) => setCommentForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Your name"
+                className="form-input md:col-span-2"
+                required
+              />
+              <textarea
+                value={commentForm.content}
+                onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
+                placeholder="Write your comment..."
+                className="form-input resize-y md:col-span-2"
+                rows={4}
+                required
+              />
+              <div className="flex items-center justify-end gap-3 md:col-span-2">
+                <button type="submit" className="btn-primary" disabled={commentSubmitting}>
+                  {commentSubmitting ? 'Submitting...' : 'Post Comment'}
+                </button>
+              </div>
+              {commentNotice && (
+                <p className="text-sm text-stone-600 dark:text-neutral-400 md:col-span-2">
+                  {commentNotice}
+                </p>
+              )}
+            </form>
+
+            {commentsLoading ? (
+              <p className="text-sm text-stone-500 dark:text-neutral-500">Loading comments...</p>
+            ) : comments.length === 0 ? null : (
+              <div className="space-y-4">
+                {comments.map((c) => (
+                  <div
+                    key={c.$id}
+                    className="rounded-lg border border-stone-200 p-3 dark:border-neutral-800"
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
+                        {c.name}
+                      </span>
+                      <span className="text-xs text-stone-500 dark:text-neutral-500">
+                        {c.createdAt
+                          ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
+                          : ''}
+                      </span>
+                    </div>
+                    <p className="text-sm text-stone-700 dark:text-neutral-300">{c.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </article>
 
         {/* Related articles */}

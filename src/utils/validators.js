@@ -22,8 +22,8 @@ export const articleSchema = z.object({
 export const commentSchema = z.object({
   articleId: z.string().min(1),
   name: z.string().min(2, 'Name is required').max(100),
-  email: z.string().email('Valid email required'),
-  content: z.string().min(5, 'Comment too short').max(1000, 'Comment too long'),
+  email: z.string().email('Valid email required').optional().or(z.literal('')),
+  content: z.string().min(2, 'Comment too short').max(1000, 'Comment too long'),
   website: z.string().url().optional().or(z.literal('')),
 });
 

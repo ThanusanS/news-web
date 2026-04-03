@@ -45,9 +45,19 @@ export default async function handler(req, res) {
     if (!canComment(ip)) return res.status(429).json({ error: 'Too many comments. Try again later.' });
 
     const parsed = commentSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: 'Validation failed', issues: parsed.error.issues });
+    if (!parsed.success) {
+      const issueMessage = parsed.error.issues?.[0]?.message || 'Validation failed';
+      return res.status(400).json({ error: issueMessage, issues: parsed.error.issues });
+    }
 
     const { articleId, name, email, content, website } = parsed.data;
+    const safeName = isomorphicDompurify.sanitize(name, { ALLOWED_TAGS: [] });
+    const safeEmail = (email || '').trim() || `${
+      safeName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '.') || 'reader'
+    }@comment.local`;
 
     // Sanitize content
     const cleanContent = isomorphicDompurify.sanitize(content, { ALLOWED_TAGS: [] });
@@ -57,8 +67,8 @@ export default async function handler(req, res) {
     try {
       const comment = await databases.createDocument(DB_ID, COMMENTS_COL, ID.unique(), {
         articleId,
-        name: isomorphicDompurify.sanitize(name, { ALLOWED_TAGS: [] }),
-        email,
+        name: safeName,
+        email: safeEmail,
         content: cleanContent,
         website: website || '',
         approved: false, // Requires admin approval
