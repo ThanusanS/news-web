@@ -7,7 +7,11 @@ import '../styles/globals.css';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const SWR_CONFIG = {
-  fetcher: (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); }),
+  fetcher: (url) =>
+    fetch(url).then((r) => {
+      if (!r.ok) throw new Error(r.statusText);
+      return r.json();
+    }),
   revalidateOnFocus: false,
   dedupingInterval: 30000,
   errorRetryCount: 2,

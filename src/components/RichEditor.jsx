@@ -5,23 +5,94 @@ import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
 import Placeholder from '@tiptap/extension-placeholder';
 import ReactCrop from 'react-image-crop';
 
 const TOOLBAR_BUTTONS = [
-  { label: 'B', title: 'Bold', action: (e) => e.chain().focus().toggleBold().run(), active: (e) => e.isActive('bold') },
-  { label: 'I', title: 'Italic', action: (e) => e.chain().focus().toggleItalic().run(), active: (e) => e.isActive('italic') },
-  { label: 'S', title: 'Strike', action: (e) => e.chain().focus().toggleStrike().run(), active: (e) => e.isActive('strike') },
-  { label: 'H2', title: 'Heading 2', action: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(), active: (e) => e.isActive('heading', { level: 2 }) },
-  { label: 'H3', title: 'Heading 3', action: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(), active: (e) => e.isActive('heading', { level: 3 }) },
-  { label: '¶', title: 'Paragraph', action: (e) => e.chain().focus().setParagraph().run(), active: (e) => e.isActive('paragraph') },
-  { label: '•', title: 'Bullet list', action: (e) => e.chain().focus().toggleBulletList().run(), active: (e) => e.isActive('bulletList') },
-  { label: '1.', title: 'Ordered list', action: (e) => e.chain().focus().toggleOrderedList().run(), active: (e) => e.isActive('orderedList') },
-  { label: '"', title: 'Blockquote', action: (e) => e.chain().focus().toggleBlockquote().run(), active: (e) => e.isActive('blockquote') },
-  { label: '</>', title: 'Code block', action: (e) => e.chain().focus().toggleCodeBlock().run(), active: (e) => e.isActive('codeBlock') },
-  { label: '—', title: 'Horizontal rule', action: (e) => e.chain().focus().setHorizontalRule().run(), active: () => false },
+  {
+    label: 'B',
+    title: 'Bold',
+    action: (e) => e.chain().focus().toggleBold().run(),
+    active: (e) => e.isActive('bold'),
+  },
+  {
+    label: 'I',
+    title: 'Italic',
+    action: (e) => e.chain().focus().toggleItalic().run(),
+    active: (e) => e.isActive('italic'),
+  },
+  {
+    label: 'S',
+    title: 'Strike',
+    action: (e) => e.chain().focus().toggleStrike().run(),
+    active: (e) => e.isActive('strike'),
+  },
+  {
+    label: 'H2',
+    title: 'Heading 2',
+    action: (e) => e.chain().focus().toggleHeading({ level: 2 }).run(),
+    active: (e) => e.isActive('heading', { level: 2 }),
+  },
+  {
+    label: 'H3',
+    title: 'Heading 3',
+    action: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(),
+    active: (e) => e.isActive('heading', { level: 3 }),
+  },
+  {
+    label: '¶',
+    title: 'Paragraph',
+    action: (e) => e.chain().focus().setParagraph().run(),
+    active: (e) => e.isActive('paragraph'),
+  },
+  {
+    label: '•',
+    title: 'Bullet list',
+    action: (e) => e.chain().focus().toggleBulletList().run(),
+    active: (e) => e.isActive('bulletList'),
+  },
+  {
+    label: '1.',
+    title: 'Ordered list',
+    action: (e) => e.chain().focus().toggleOrderedList().run(),
+    active: (e) => e.isActive('orderedList'),
+  },
+  {
+    label: '"',
+    title: 'Blockquote',
+    action: (e) => e.chain().focus().toggleBlockquote().run(),
+    active: (e) => e.isActive('blockquote'),
+  },
+  {
+    label: '</>',
+    title: 'Code block',
+    action: (e) => e.chain().focus().toggleCodeBlock().run(),
+    active: (e) => e.isActive('codeBlock'),
+  },
+  {
+    label: '—',
+    title: 'Horizontal rule',
+    action: (e) => e.chain().focus().setHorizontalRule().run(),
+    active: () => false,
+  },
   { label: '↩', title: 'Undo', action: (e) => e.chain().focus().undo().run(), active: () => false },
   { label: '↪', title: 'Redo', action: (e) => e.chain().focus().redo().run(), active: () => false },
+];
+
+const TEXT_COLORS = [
+  { label: 'Black', value: '#111827' },
+  { label: 'White', value: '#ffffff' },
+  { label: 'Red', value: '#dc2626' },
+  { label: 'Blue', value: '#2563eb' },
+  { label: 'Green', value: '#059669' },
+  { label: 'Orange', value: '#ea580c' },
+  { label: 'Purple', value: '#7c3aed' },
 ];
 
 const CustomImage = Image.extend({
@@ -99,8 +170,10 @@ const CustomImage = Image.extend({
     if (align === 'center') styleParts.push('display:block;margin:1rem auto;clear:both');
 
     if (crop === 'none') styleParts.push('aspect-ratio:auto;object-fit:contain;height:auto');
-    if (crop === 'landscape') styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
-    if (crop === 'square') styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
+    if (crop === 'landscape')
+      styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
+    if (crop === 'square')
+      styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
 
     if (shape === 'rounded') styleParts.push('border-radius:0.5rem');
     if (shape === 'square') styleParts.push('border-radius:0');
@@ -146,9 +219,25 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      TextStyle,
+      Color,
       CustomImage.configure({ inline: false, allowBase64: true }),
-      Link.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder: 'Write your article here...\n\nAim for 800-1500 words. Use H2 headings to structure content. Include your focus keyword in the first paragraph.' }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        protocols: ['http', 'https', 'mailto', 'tel'],
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: { class: 'editor-table' },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      Placeholder.configure({
+        placeholder:
+          'Write your article here...\n\nAim for 800-1500 words. Use H2 headings to structure content. Include your focus keyword in the first paragraph.',
+      }),
     ],
     content,
     onUpdate({ editor }) {
@@ -225,8 +314,10 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     if (align === 'center') styleParts.push('display:block;margin:1rem auto;clear:both');
 
     if (crop === 'none') styleParts.push('aspect-ratio:auto;object-fit:contain;height:auto');
-    if (crop === 'landscape') styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
-    if (crop === 'square') styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
+    if (crop === 'landscape')
+      styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
+    if (crop === 'square')
+      styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
 
     if (shape === 'rounded') styleParts.push('border-radius:0.5rem');
     if (shape === 'square') styleParts.push('border-radius:0');
@@ -398,11 +489,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   function addImageCaption() {
     const caption = prompt('Image caption text:');
     if (!caption) return;
-    editor
-      ?.chain()
-      .focus()
-      .insertContent(`<p class="image-caption">${caption}</p>`)
-      .run();
+    editor?.chain().focus().insertContent(`<p class="image-caption">${caption}</p>`).run();
   }
 
   async function uploadAndInsertImage(event) {
@@ -428,9 +515,109 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     }
   }
 
+  function normalizeUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^javascript:/i.test(raw)) return '';
+    if (/^(https?:|mailto:|tel:|#|\/)/i.test(raw)) return raw;
+    return `https://${raw}`;
+  }
+
   function addLink() {
-    const url = prompt('URL:');
-    if (url) editor?.chain().focus().setLink({ href: url }).run();
+    if (!editor) return;
+
+    const previousUrl = editor.getAttributes('link').href || '';
+    const rawUrl = prompt('URL (leave empty to remove link):', previousUrl);
+    if (rawUrl === null) return;
+
+    const trimmedUrl = rawUrl.trim();
+
+    if (!trimmedUrl) {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    const href = normalizeUrl(trimmedUrl);
+    const attrs = {
+      href,
+      target: '_blank',
+      rel: 'noopener noreferrer nofollow',
+    };
+
+    const { from, empty } = editor.state.selection;
+    if (empty) {
+      const text = prompt('Link text:', href) || href;
+      if (!text.trim()) return;
+
+      editor
+        .chain()
+        .focus()
+        .insertContent(text)
+        .setTextSelection({ from, to: from + text.length })
+        .setLink(attrs)
+        .run();
+      return;
+    }
+
+    editor.chain().focus().extendMarkRange('link').setLink(attrs).run();
+  }
+
+  function insertResourceLink(defaultText, promptTitle) {
+    if (!editor) return;
+
+    const rawUrl = prompt(`${promptTitle} URL:`);
+    if (rawUrl === null) return;
+
+    const href = normalizeUrl(rawUrl);
+    if (!href) return;
+
+    const text = (prompt('Link text:', defaultText) || defaultText).trim() || defaultText;
+    const safeHref = href.replace(/"/g, '&quot;');
+    const safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    editor
+      .chain()
+      .focus()
+      .insertContent(
+        `<p><a href="${safeHref}" target="_blank" rel="noopener noreferrer nofollow">${safeText}</a></p>`
+      )
+      .run();
+  }
+
+  function addVideoLink() {
+    insertResourceLink('Watch Video', 'Video');
+  }
+
+  function addPdfLink() {
+    insertResourceLink('Open PDF', 'PDF');
+  }
+
+  function setTextColor(color) {
+    if (!editor) return;
+
+    editor.commands.focus();
+
+    if (!color) {
+      if (typeof editor.commands.unsetColor === 'function') {
+        editor.commands.unsetColor();
+      } else {
+        editor.commands.setMark('textStyle', { color: null });
+        if (typeof editor.commands.removeEmptyTextStyle === 'function') {
+          editor.commands.removeEmptyTextStyle();
+        }
+      }
+      return;
+    }
+
+    if (typeof editor.commands.setColor === 'function') {
+      editor.commands.setColor(color);
+    } else {
+      editor.commands.setMark('textStyle', { color });
+    }
+  }
+
+  function insertTable() {
+    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   }
 
   function selectImageByPos(pos) {
@@ -465,27 +652,33 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   const selectedImageAttrs = getSelectedImageAttrs();
   const imageList = getImageList();
   const selectedImageIndex = imageList.findIndex((item) => item.pos === activeImagePos);
+  const currentTextColor = editor.getAttributes('textStyle').color || '';
 
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 bg-stone-50 dark:bg-neutral-800 border-b border-stone-200 dark:border-neutral-700">
+      <div className="flex flex-wrap gap-1 border-b border-stone-200 bg-stone-50 p-2 dark:border-neutral-700 dark:bg-neutral-800">
         {TOOLBAR_BUTTONS.map((btn) => (
           <button
             key={btn.label}
             type="button"
             title={btn.title}
             onClick={() => btn.action(editor)}
-            className={`px-2 py-1 rounded text-xs font-bold border transition-all
-              ${btn.active(editor)
-                ? 'bg-accent text-white border-accent'
-                : 'bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent'}`}
+            className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
+              btn.active(editor)
+                ? 'border-accent bg-accent text-white'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+            }`}
           >
             {btn.label}
           </button>
         ))}
-        <button type="button" onClick={addImage} title="Insert image"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all">
+        <button
+          type="button"
+          onClick={addImage}
+          title="Insert image"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
           IMG URL
         </button>
         <button
@@ -493,7 +686,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           onClick={() => fileInputRef.current?.click()}
           disabled={!onUploadImage || uploadingImage}
           title="Upload image"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all disabled:opacity-40"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
         >
           {uploadingImage ? 'Uploading...' : 'Upload IMG'}
         </button>
@@ -504,23 +697,138 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           className="hidden"
           onChange={uploadAndInsertImage}
         />
-        <button type="button" onClick={addLink} title="Insert link"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all">
+        <button
+          type="button"
+          onClick={addLink}
+          title="Insert link"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
           LINK
         </button>
+        <button
+          type="button"
+          onClick={addVideoLink}
+          title="Insert video link"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          VIDEO URL
+        </button>
+        <button
+          type="button"
+          onClick={addPdfLink}
+          title="Insert PDF link"
+          className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+        >
+          PDF URL
+        </button>
+        <div className="flex basis-full flex-wrap items-center gap-1 rounded border border-stone-200 bg-white/70 p-2 dark:border-neutral-700 dark:bg-neutral-900/60">
+          <span className="mr-2 text-[10px] font-semibold tracking-wide text-stone-500 dark:text-neutral-400">
+            TEXT & TABLE
+          </span>
+          <div
+            className="flex items-center gap-1 rounded border border-stone-200 bg-white px-1 py-0.5 dark:border-neutral-700 dark:bg-neutral-900"
+            title="Text color"
+          >
+            {TEXT_COLORS.map((color) => (
+              <button
+                key={color.value}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setTextColor(color.value)}
+                title={color.label}
+                className={`h-5 w-5 rounded border transition-all ${currentTextColor === color.value ? 'border-accent ring-1 ring-accent' : 'border-stone-300 dark:border-neutral-600'}`}
+                style={{ backgroundColor: color.value }}
+                aria-label={`Set ${color.label} text color`}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setTextColor('')}
+            title="Clear text color"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            CLR COLOR
+          </button>
+          <button
+            type="button"
+            onClick={insertTable}
+            title="Insert table"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            TABLE
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            disabled={!editor.isActive('table')}
+            title="Add row"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            +ROW
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            disabled={!editor.isActive('table')}
+            title="Delete row"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            -ROW
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            disabled={!editor.isActive('table')}
+            title="Add column"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            +COL
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            disabled={!editor.isActive('table')}
+            title="Delete column"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            -COL
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            disabled={!editor.isActive('table')}
+            title="Toggle header row"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            HEADER
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            disabled={!editor.isActive('table')}
+            title="Delete table"
+            className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+          >
+            DEL TABLE
+          </button>
+        </div>
 
-        <div className="basis-full mt-1 rounded-md border border-stone-200 dark:border-neutral-700 bg-white/70 dark:bg-neutral-900/60 p-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-semibold text-stone-700 dark:text-neutral-200">Image Editor</span>
+        <div className="mt-1 basis-full rounded-md border border-stone-200 bg-white/70 p-2 dark:border-neutral-700 dark:bg-neutral-900/60">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-stone-700 dark:text-neutral-200">
+              Image Editor
+            </span>
             <span className="text-[10px] text-stone-500 dark:text-neutral-400">
               {selectedImageAttrs ? 'Image selected' : 'No image selected'}
             </span>
           </div>
-          <p className="text-[10px] text-stone-500 dark:text-neutral-400 mb-2">
+          <p className="mb-2 text-[10px] text-stone-500 dark:text-neutral-400">
             Click an image in the editor, then use these controls.
           </p>
           {selectedImageAttrs && (
-            <p className="text-[10px] text-stone-500 dark:text-neutral-400 mb-2">
+            <p className="mb-2 text-[10px] text-stone-500 dark:text-neutral-400">
               {`Current: align=${selectedImageAttrs.align || 'center'} | crop=${selectedImageAttrs.crop || 'none'} | size=${selectedImageAttrs.size || 'full'} | shape=${selectedImageAttrs.shape || 'rounded'} | frame=${selectedImageAttrs.frame || 'none'}`}
             </p>
           )}
@@ -534,7 +842,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
                 const next = (current - 1 + imageList.length) % imageList.length;
                 selectImageByPos(imageList[next].pos);
               }}
-              className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
             >
               Prev
             </button>
@@ -544,7 +852,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
                 const pos = Number(e.target.value);
                 if (!Number.isNaN(pos)) selectImageByPos(pos);
               }}
-              className="min-w-[220px] rounded border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-xs text-stone-700 dark:text-neutral-200"
+              className="min-w-[220px] rounded border border-stone-200 bg-white px-2 py-1 text-xs text-stone-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
             >
               <option value="">Select image...</option>
               {imageList.map((image, index) => (
@@ -561,7 +869,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
                 const next = (current + 1) % imageList.length;
                 selectImageByPos(imageList[next].pos);
               }}
-              className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
             >
               Next
             </button>
@@ -570,158 +878,182 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           <button
             type="button"
             onClick={selectLastImage}
-            className="mb-2 px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
+            className="mb-2 rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
           >
             Select Last Image
           </button>
 
           <div className="flex flex-wrap gap-1">
-            <span className="mx-1 text-[10px] text-stone-400 self-center">IMG</span>
-        <button
-          type="button"
-          onClick={clearImageSelection}
-          title="Deselect image"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          DeSelect
-        </button>
-        <button
-          type="button"
-          onClick={openMouseCrop}
-          title="Mouse corner crop"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Mouse Crop
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ align: 'left', size: 'half' })}
-          title="Image left"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Left
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ align: 'center' })}
-          title="Image center"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Center
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ align: 'right', size: 'half' })}
-          title="Image right"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Right
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ crop: 'none', clipTop: 0, clipRight: 0, clipBottom: 0, clipLeft: 0 })}
-          title="No crop"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          NoCrop
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ crop: 'landscape', clipTop: 0, clipRight: 0, clipBottom: 0, clipLeft: 0 })}
-          title="Crop 16:9"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          16:9
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ crop: 'square', clipTop: 0, clipRight: 0, clipBottom: 0, clipLeft: 0 })}
-          title="Crop square"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          1:1
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ size: 'half' })}
-          title="Half width"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          50%
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ size: 'full' })}
-          title="Full width"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          100%
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ size: 'third' })}
-          title="One third width"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          33%
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ size: 'twoThird' })}
-          title="Two third width"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          66%
-        </button>
+            <span className="mx-1 self-center text-[10px] text-stone-400">IMG</span>
+            <button
+              type="button"
+              onClick={clearImageSelection}
+              title="Deselect image"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              DeSelect
+            </button>
+            <button
+              type="button"
+              onClick={openMouseCrop}
+              title="Mouse corner crop"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Mouse Crop
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ align: 'left', size: 'half' })}
+              title="Image left"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Left
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ align: 'center' })}
+              title="Image center"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Center
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ align: 'right', size: 'half' })}
+              title="Image right"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Right
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                updateImageAttrs({
+                  crop: 'none',
+                  clipTop: 0,
+                  clipRight: 0,
+                  clipBottom: 0,
+                  clipLeft: 0,
+                })
+              }
+              title="No crop"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              NoCrop
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                updateImageAttrs({
+                  crop: 'landscape',
+                  clipTop: 0,
+                  clipRight: 0,
+                  clipBottom: 0,
+                  clipLeft: 0,
+                })
+              }
+              title="Crop 16:9"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              16:9
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                updateImageAttrs({
+                  crop: 'square',
+                  clipTop: 0,
+                  clipRight: 0,
+                  clipBottom: 0,
+                  clipLeft: 0,
+                })
+              }
+              title="Crop square"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              1:1
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ size: 'half' })}
+              title="Half width"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              50%
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ size: 'full' })}
+              title="Full width"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              100%
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ size: 'third' })}
+              title="One third width"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              33%
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ size: 'twoThird' })}
+              title="Two third width"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              66%
+            </button>
 
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ shape: 'rounded' })}
-          title="Rounded image"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Round
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ shape: 'square' })}
-          title="Square corners"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Square
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ frame: 'none' })}
-          title="No frame"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          NoFrame
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ frame: 'border' })}
-          title="Border frame"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Border
-        </button>
-        <button
-          type="button"
-          onClick={() => updateImageAttrs({ frame: 'shadow' })}
-          title="Shadow frame"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Shadow
-        </button>
-        <button
-          type="button"
-          onClick={addImageCaption}
-          title="Insert image caption"
-          className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700 hover:bg-accent hover:text-white hover:border-accent transition-all"
-        >
-          Caption
-        </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ shape: 'rounded' })}
+              title="Rounded image"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Round
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ shape: 'square' })}
+              title="Square corners"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Square
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ frame: 'none' })}
+              title="No frame"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              NoFrame
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ frame: 'border' })}
+              title="Border frame"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Border
+            </button>
+            <button
+              type="button"
+              onClick={() => updateImageAttrs({ frame: 'shadow' })}
+              title="Shadow frame"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Shadow
+            </button>
+            <button
+              type="button"
+              onClick={addImageCaption}
+              title="Insert image caption"
+              className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+            >
+              Caption
+            </button>
           </div>
         </div>
       </div>
@@ -731,19 +1063,21 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
 
       {mouseCropOpen && (
         <div className="fixed inset-0 z-[120] bg-black/70 p-4 sm:p-8">
-          <div className="mx-auto max-w-4xl rounded-lg border border-stone-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3">
+          <div className="mx-auto max-w-4xl rounded-lg border border-stone-300 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900">
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-stone-800 dark:text-neutral-100">Mouse Corner Crop</h3>
+              <h3 className="text-sm font-semibold text-stone-800 dark:text-neutral-100">
+                Mouse Corner Crop
+              </h3>
               <button
                 type="button"
                 onClick={() => setMouseCropOpen(false)}
-                className="px-2 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700"
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-xs font-bold text-stone-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
               >
                 Close
               </button>
             </div>
 
-            <div className="max-h-[62vh] overflow-auto rounded border border-stone-200 dark:border-neutral-700 bg-stone-50 dark:bg-neutral-950 p-2">
+            <div className="max-h-[62vh] overflow-auto rounded border border-stone-200 bg-stone-50 p-2 dark:border-neutral-700 dark:bg-neutral-950">
               {mouseCropImage && (
                 <ReactCrop
                   crop={mouseCrop}
@@ -752,7 +1086,11 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
                   minHeight={10}
                   keepSelection
                 >
-                  <img src={mouseCropImage} alt="Crop target" className="max-h-[56vh] w-auto mx-auto" />
+                  <img
+                    src={mouseCropImage}
+                    alt="Crop target"
+                    className="mx-auto max-h-[56vh] w-auto"
+                  />
                 </ReactCrop>
               )}
             </div>
@@ -761,14 +1099,14 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
               <button
                 type="button"
                 onClick={() => setMouseCropOpen(false)}
-                className="px-3 py-1 rounded text-xs font-bold border bg-white dark:bg-neutral-900 text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-neutral-700"
+                className="rounded border border-stone-200 bg-white px-3 py-1 text-xs font-bold text-stone-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={applyMouseCrop}
-                className="px-3 py-1 rounded text-xs font-bold border border-accent bg-accent text-white"
+                className="rounded border border-accent bg-accent px-3 py-1 text-xs font-bold text-white"
               >
                 Apply Crop
               </button>

@@ -76,7 +76,10 @@ export default function EditPostPage() {
   async function loadMediaFiles() {
     setMediaLoading(true);
     try {
-      const res = await storage.listFiles(BUCKET_ID, [Query.orderDesc('$createdAt'), Query.limit(24)]);
+      const res = await storage.listFiles(BUCKET_ID, [
+        Query.orderDesc('$createdAt'),
+        Query.limit(24),
+      ]);
       const images = (res.files || []).filter((file) => file.mimeType?.startsWith('image/'));
       setMediaFiles(images);
     } catch {
@@ -349,6 +352,16 @@ export default function EditPostPage() {
               >
                 Save as Draft
               </button>
+              {form.slug && (
+                <a
+                  href={`/${form.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full rounded border border-stone-300 py-2.5 text-center text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  View Live
+                </a>
+              )}
             </div>
           </div>
 
@@ -383,9 +396,16 @@ export default function EditPostPage() {
               Thumbnail URL
             </label>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-6 text-center transition-colors hover:border-accent dark:border-neutral-700">
-              <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailUpload}
+                className="hidden"
+              />
               <span className="text-2xl">IMG</span>
-              <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">Upload custom thumbnail</p>
+              <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">
+                Upload custom thumbnail
+              </p>
             </label>
             <div className="mb-2 flex gap-2">
               <button
@@ -410,7 +430,9 @@ export default function EditPostPage() {
                 {mediaLoading ? (
                   <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
                 ) : mediaFiles.length === 0 ? (
-                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">
+                    No uploaded images found.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
                     {mediaFiles.map((file) => {
@@ -465,7 +487,12 @@ export default function EditPostPage() {
               News Image URL
             </label>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-6 text-center transition-colors hover:border-accent dark:border-neutral-700">
-              <input type="file" accept="image/*" onChange={handleNewsImageUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleNewsImageUpload}
+                className="hidden"
+              />
               <span className="text-2xl">IMG</span>
               <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">Upload news image</p>
             </label>
@@ -492,7 +519,9 @@ export default function EditPostPage() {
                 {mediaLoading ? (
                   <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
                 ) : mediaFiles.length === 0 ? (
-                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">
+                    No uploaded images found.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
                     {mediaFiles.map((file) => {

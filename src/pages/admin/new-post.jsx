@@ -85,7 +85,10 @@ export default function NewPostPage() {
   async function loadMediaFiles() {
     setMediaLoading(true);
     try {
-      const res = await storage.listFiles(BUCKET_ID, [Query.orderDesc('$createdAt'), Query.limit(24)]);
+      const res = await storage.listFiles(BUCKET_ID, [
+        Query.orderDesc('$createdAt'),
+        Query.limit(24),
+      ]);
       const images = (res.files || []).filter((file) => file.mimeType?.startsWith('image/'));
       setMediaFiles(images);
     } catch {
@@ -362,6 +365,16 @@ export default function NewPostPage() {
               >
                 Save Draft
               </button>
+              {form.slug && (
+                <a
+                  href={`/${form.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full rounded border border-stone-300 py-2.5 text-center text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  View Live
+                </a>
+              )}
             </div>
           </div>
 
@@ -398,7 +411,12 @@ export default function NewPostPage() {
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Thumbnail (YouTube style)</h3>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-8 text-center transition-colors hover:border-accent dark:border-neutral-700">
-              <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailUpload}
+                className="hidden"
+              />
               <span className="text-2xl">IMG</span>
               <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">
                 Upload custom thumbnail
@@ -429,31 +447,33 @@ export default function NewPostPage() {
                 {mediaLoading ? (
                   <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
                 ) : mediaFiles.length === 0 ? (
-                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">
+                    No uploaded images found.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
-                    {mediaFiles.map((file) => (
+                    {mediaFiles.map((file) =>
                       (() => {
                         const fileUrl = getFileViewUrl(file.$id);
                         const selected = form.featuredImage === fileUrl;
                         return (
-                      <button
-                        key={file.$id}
-                        type="button"
-                        onClick={() => selectMediaImage(file.$id)}
-                        className={`group overflow-hidden rounded border dark:border-neutral-700 ${selected ? 'border-accent ring-1 ring-accent' : 'border-stone-200 hover:border-accent'}`}
-                        title={file.name}
-                      >
-                        <img
-                          src={getFilePreviewUrl(file.$id, 200, 120)}
-                          alt={file.name}
-                          className="h-16 w-full object-cover transition-transform group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      </button>
+                          <button
+                            key={file.$id}
+                            type="button"
+                            onClick={() => selectMediaImage(file.$id)}
+                            className={`group overflow-hidden rounded border dark:border-neutral-700 ${selected ? 'border-accent ring-1 ring-accent' : 'border-stone-200 hover:border-accent'}`}
+                            title={file.name}
+                          >
+                            <img
+                              src={getFilePreviewUrl(file.$id, 200, 120)}
+                              alt={file.name}
+                              className="h-16 w-full object-cover transition-transform group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          </button>
                         );
                       })()
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
@@ -486,11 +506,14 @@ export default function NewPostPage() {
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">News Image (Article Header)</h3>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-8 text-center transition-colors hover:border-accent dark:border-neutral-700">
-              <input type="file" accept="image/*" onChange={handleNewsImageUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleNewsImageUpload}
+                className="hidden"
+              />
               <span className="text-2xl">IMG</span>
-              <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">
-                Upload news image
-              </p>
+              <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">Upload news image</p>
             </label>
 
             <div className="mb-2 flex gap-2">
@@ -517,7 +540,9 @@ export default function NewPostPage() {
                 {mediaLoading ? (
                   <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
                 ) : mediaFiles.length === 0 ? (
-                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">
+                    No uploaded images found.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
                     {mediaFiles.map((file) => {

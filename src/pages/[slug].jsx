@@ -7,7 +7,12 @@ import Layout from '../components/Layout';
 import ArticleCard from '../components/ArticleCard';
 import AdSense from '../components/AdSense';
 import { getArticleBySlug, getArticles, incrementViews } from '../lib/appwrite';
-import { buildSeoProps, buildArticleSchema, buildBreadcrumbSchema, estimateReadTime } from '../lib/seo';
+import {
+  buildSeoProps,
+  buildArticleSchema,
+  buildBreadcrumbSchema,
+  estimateReadTime,
+} from '../lib/seo';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
 
@@ -41,8 +46,10 @@ function buildEditorImageStyleFromAttrs(attrs) {
   if (align === 'center') styleParts.push('display:block;margin:1rem auto;clear:both');
 
   if (crop === 'none') styleParts.push('aspect-ratio:auto;object-fit:contain;height:auto');
-  if (crop === 'landscape') styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
-  if (crop === 'square') styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
+  if (crop === 'landscape')
+    styleParts.push('aspect-ratio:16/9;object-fit:cover;height:clamp(180px,28vw,420px)');
+  if (crop === 'square')
+    styleParts.push('aspect-ratio:1/1;object-fit:cover;height:min(60vw,420px)');
 
   if (shape === 'rounded') styleParts.push('border-radius:0.5rem');
   if (shape === 'square') styleParts.push('border-radius:0');
@@ -70,10 +77,33 @@ function normalizeEditorImageHtml(html = '') {
   });
 }
 
+function appendInlineStyle(attrs, styleSnippet) {
+  if (/\sstyle="[^"]*"/i.test(attrs)) {
+    return attrs.replace(/\sstyle="([^"]*)"/i, (_, existing) => {
+      const merged = `${existing};${styleSnippet}`.replace(/;;+/g, ';');
+      return ` style="${merged}"`;
+    });
+  }
+  return `${attrs} style="${styleSnippet}"`;
+}
+
+function normalizeEditorTableHtml(html = '') {
+  if (!html || typeof html !== 'string') return html;
+
+  const tableStyle = 'border-collapse:collapse;border:2px solid currentColor;width:100%';
+  const thStyle = 'border:1px solid currentColor';
+  const tdStyle = 'border:1px solid currentColor';
+
+  return html
+    .replace(/<table\b([^>]*)>/gi, (_, attrs) => `<table${appendInlineStyle(attrs, tableStyle)}>`)
+    .replace(/<th\b([^>]*)>/gi, (_, attrs) => `<th${appendInlineStyle(attrs, thStyle)}>`)
+    .replace(/<td\b([^>]*)>/gi, (_, attrs) => `<td${appendInlineStyle(attrs, tdStyle)}>`);
+}
+
 export default function ArticlePage({ article, relatedArticles }) {
   const readTime = estimateReadTime(article?.content || '');
-  const renderedContent = normalizeEditorImageHtml(
-    article?.content || '<p>Article content coming soon.</p>'
+  const renderedContent = normalizeEditorTableHtml(
+    normalizeEditorImageHtml(article?.content || '<p>Article content coming soon.</p>')
   );
 
   // Increment view count on load
@@ -86,10 +116,14 @@ export default function ArticlePage({ article, relatedArticles }) {
   if (!article) {
     return (
       <Layout title="Article Not Found | CeylonUpdates">
-        <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-          <h1 className="font-head text-4xl font-black mb-4">404 — Article Not Found</h1>
-          <p className="text-stone-500 mb-6">This article may have been removed or the URL is incorrect.</p>
-          <Link href="/" className="btn-primary">← Back to Home</Link>
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <h1 className="mb-4 font-head text-4xl font-black">404 — Article Not Found</h1>
+          <p className="mb-6 text-stone-500">
+            This article may have been removed or the URL is incorrect.
+          </p>
+          <Link href="/" className="btn-primary">
+            ← Back to Home
+          </Link>
         </div>
       </Layout>
     );
@@ -102,7 +136,12 @@ export default function ArticlePage({ article, relatedArticles }) {
     slug: article.slug,
     image: article.newsImage,
     type: 'article',
-    article: { publishedAt: article.publishedAt, updatedAt: article.updatedAt, author: article.author, tags: article.tags },
+    article: {
+      publishedAt: article.publishedAt,
+      updatedAt: article.updatedAt,
+      author: article.author,
+      tags: article.tags,
+    },
   });
 
   const shareUrl = encodeURIComponent(articleUrl);
@@ -114,7 +153,9 @@ export default function ArticlePage({ article, relatedArticles }) {
       <Head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleSchema(article, articleUrl)) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(buildArticleSchema(article, articleUrl)),
+          }}
         />
         <script
           type="application/ld+json"
@@ -122,7 +163,10 @@ export default function ArticlePage({ article, relatedArticles }) {
             __html: JSON.stringify(
               buildBreadcrumbSchema([
                 { name: 'Home', path: '/' },
-                { name: article.category?.replace(/-/g, ' '), path: `/category/${article.category}` },
+                {
+                  name: article.category?.replace(/-/g, ' '),
+                  path: `/category/${article.category}`,
+                },
                 { name: article.title, path: `/${article.slug}` },
               ])
             ),
@@ -131,63 +175,100 @@ export default function ArticlePage({ article, relatedArticles }) {
       </Head>
 
       <Layout>
-        <article className="max-w-4xl mx-auto px-4 py-8" itemScope itemType="https://schema.org/NewsArticle">
-
+        <article
+          className="mx-auto max-w-4xl px-4 py-8"
+          itemScope
+          itemType="https://schema.org/NewsArticle"
+        >
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1 text-xs text-stone-500 dark:text-neutral-500 mb-5" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-accent">Home</Link>
+          <nav
+            className="mb-5 flex items-center gap-1 text-xs text-stone-500 dark:text-neutral-500"
+            aria-label="Breadcrumb"
+          >
+            <Link href="/" className="hover:text-accent">
+              Home
+            </Link>
             <span>›</span>
-            <Link href={`/category/${article.category}`} className="hover:text-accent capitalize">
+            <Link href={`/category/${article.category}`} className="capitalize hover:text-accent">
               {article.category?.replace(/-/g, ' ')}
             </Link>
             <span>›</span>
-            <span className="text-stone-700 dark:text-neutral-300 truncate max-w-xs">{article.title}</span>
+            <span className="max-w-xs truncate text-stone-700 dark:text-neutral-300">
+              {article.title}
+            </span>
           </nav>
 
           {/* Category */}
           <div className="mb-3">
-            <Link href={`/category/${article.category}`} className="inline-block bg-accent text-white text-[10px] font-black tracking-widest px-2 py-1 rounded uppercase">
+            <Link
+              href={`/category/${article.category}`}
+              className="inline-block rounded bg-accent px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white"
+            >
               {article.category?.replace(/-/g, ' ')}
             </Link>
           </div>
 
           {/* Title */}
-          <h1 className="font-head text-3xl md:text-4xl font-black leading-tight text-stone-900 dark:text-neutral-50 mb-4" itemProp="headline">
+          <h1
+            className="mb-4 font-head text-3xl font-black leading-tight text-stone-900 dark:text-neutral-50 md:text-4xl"
+            itemProp="headline"
+          >
             {article.title}
           </h1>
 
           {/* Meta bar */}
-          <div className="flex flex-wrap items-center gap-4 py-4 border-y border-stone-200 dark:border-neutral-800 mb-6">
+          <div className="mb-6 flex flex-wrap items-center gap-4 border-y border-stone-200 py-4 dark:border-neutral-800">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-white text-sm font-bold" itemProp="author">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-navy to-accent text-sm font-bold text-white"
+                itemProp="author"
+              >
                 {article.author?.[0]?.toUpperCase() || 'A'}
               </div>
               <div>
-                <p className="text-sm font-semibold text-stone-900 dark:text-neutral-100" itemProp="author">{article.author || 'Staff Writer'}</p>
+                <p
+                  className="text-sm font-semibold text-stone-900 dark:text-neutral-100"
+                  itemProp="author"
+                >
+                  {article.author || 'Staff Writer'}
+                </p>
                 <p className="text-xs text-stone-400 dark:text-neutral-600">
                   <time itemProp="datePublished" dateTime={article.publishedAt}>
-                    {article.publishedAt ? format(new Date(article.publishedAt), 'MMMM d, yyyy') : 'Recently'}
+                    {article.publishedAt
+                      ? format(new Date(article.publishedAt), 'MMMM d, yyyy')
+                      : 'Recently'}
                   </time>
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-xs text-stone-400 dark:text-neutral-600 ml-auto">
+            <div className="ml-auto flex items-center gap-3 text-xs text-stone-400 dark:text-neutral-600">
               <span>⏱ {readTime} min read</span>
-              {article.views > 0 && <span>👁 {article.views.toLocaleString()} views</span>}
             </div>
 
             {/* Share buttons */}
-            <div className="flex items-center gap-2 ml-0 sm:ml-auto">
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-[#1877F2] text-white rounded text-xs font-bold hover:opacity-90">
+            <div className="ml-0 flex items-center gap-2 sm:ml-auto">
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-[#1877F2] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+              >
                 f Share
               </a>
-              <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-black text-white rounded text-xs font-bold hover:opacity-90">
+              <a
+                href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-black px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+              >
                 ✕ Tweet
               </a>
-              <a href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-[#25D366] text-white rounded text-xs font-bold hover:opacity-90">
+              <a
+                href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+              >
                 📱 WhatsApp
               </a>
             </div>
@@ -195,7 +276,7 @@ export default function ArticlePage({ article, relatedArticles }) {
 
           {/* Featured image */}
           {article.newsImage && (
-            <div className="relative aspect-video rounded-xl overflow-hidden mb-8 bg-stone-200 dark:bg-neutral-800">
+            <div className="relative mb-8 aspect-video overflow-hidden rounded-xl bg-stone-200 dark:bg-neutral-800">
               <img
                 src={article.newsImage}
                 alt={article.title}
@@ -207,7 +288,7 @@ export default function ArticlePage({ article, relatedArticles }) {
           )}
 
           {/* Top ad */}
-          <div className="flex justify-center mb-8">
+          <div className="mb-8 flex justify-center">
             <AdSense type="leaderboard" />
           </div>
 
@@ -225,36 +306,60 @@ export default function ArticlePage({ article, relatedArticles }) {
 
           {/* Tags */}
           {article.tags?.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-stone-200 dark:border-neutral-800">
-              <p className="text-xs font-bold tracking-widest text-stone-400 dark:text-neutral-600 uppercase mb-3">Tags</p>
+            <div className="mt-8 border-t border-stone-200 pt-6 dark:border-neutral-800">
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-neutral-600">
+                Tags
+              </p>
               <div className="flex flex-wrap gap-2">
                 {article.tags.map((tag) => (
-                  <Link key={tag} href={`/tag/${tag}`} className="tag-pill">#{tag}</Link>
+                  <Link key={tag} href={`/tag/${tag}`} className="tag-pill">
+                    #{tag}
+                  </Link>
                 ))}
               </div>
             </div>
           )}
 
           {/* Share bottom */}
-          <div className="mt-8 p-5 bg-stone-50 dark:bg-neutral-900 rounded-xl border border-stone-200 dark:border-neutral-800 text-center">
-            <p className="text-sm font-semibold text-stone-700 dark:text-neutral-300 mb-3">Found this useful? Share it 👇</p>
+          <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-5 text-center dark:border-neutral-800 dark:bg-neutral-900">
+            <p className="mb-3 text-sm font-semibold text-stone-700 dark:text-neutral-300">
+              Found this useful? Share it 👇
+            </p>
             <div className="flex justify-center gap-3">
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-[#1877F2] text-white rounded text-sm font-bold hover:opacity-90">Facebook</a>
-              <a href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-black text-white rounded text-sm font-bold hover:opacity-90">Twitter / X</a>
-              <a href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-[#25D366] text-white rounded text-sm font-bold hover:opacity-90">WhatsApp</a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-[#1877F2] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+              >
+                Facebook
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-black px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+              >
+                Twitter / X
+              </a>
+              <a
+                href={`https://wa.me/?text=${shareTitle}%20${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-[#25D366] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+              >
+                WhatsApp
+              </a>
             </div>
           </div>
         </article>
 
         {/* Related articles */}
         {relatedArticles?.length > 0 && (
-          <section className="max-w-4xl mx-auto px-4 pb-12">
-            <div className="border-t-2 border-stone-200 dark:border-neutral-800 pt-8">
+          <section className="mx-auto max-w-4xl px-4 pb-12">
+            <div className="border-t-2 border-stone-200 pt-8 dark:border-neutral-800">
               <h2 className="section-title mb-6">Related Articles</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedArticles.map((a) => (
                   <ArticleCard key={a.$id} article={a} />
                 ))}
@@ -272,35 +377,18 @@ export default function ArticlePage({ article, relatedArticles }) {
   );
 }
 
-export async function getStaticPaths() {
+export async function getServerSideProps({ params, res }) {
   try {
-    const res = await getArticles({ limit: 100 });
-    const blocked = new Set(['', '/', 'admin', 'api']);
-    return {
-      paths: res.documents
-        .map((a) => String(a.slug || '').trim())
-        .filter((slug) => slug && !blocked.has(slug.toLowerCase()))
-        .map((slug) => ({ params: { slug } })),
-      fallback: 'blocking',
-    };
-  } catch {
-    return { paths: [], fallback: 'blocking' };
-  }
-}
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
 
-export async function getStaticProps({ params }) {
-  try {
     const article = await getArticleBySlug(params.slug);
-    if (!article) return { notFound: true };
+    if (!article) return { notFound: true, props: {} };
 
     const relatedRes = await getArticles({ category: article.category, limit: 4 });
     const relatedArticles = relatedRes.documents.filter((a) => a.$id !== article.$id).slice(0, 3);
 
-    return {
-      props: { article, relatedArticles },
-      revalidate: 600,
-    };
+    return { props: { article, relatedArticles } };
   } catch {
-    return { notFound: true };
+    return { notFound: true, props: {} };
   }
 }
