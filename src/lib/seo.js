@@ -44,7 +44,7 @@ export function buildArticleSchema(article, url) {
     '@type': 'NewsArticle',
     headline: article.title,
     description: article.metaDescription || article.excerpt,
-    image: article.featuredImage,
+    image: article.newsImage,
     datePublished: article.publishedAt,
     dateModified: article.updatedAt || article.publishedAt,
     author: {

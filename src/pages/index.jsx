@@ -4,7 +4,6 @@ import ArticleCard from '../components/ArticleCard';
 import Sidebar from '../components/Sidebar';
 import AdSense from '../components/AdSense';
 import Link from 'next/link';
-import Image from 'next/image';
 import { FiCode, FiCpu, FiFileText } from 'react-icons/fi';
 import { getArticles, getTrendingArticles } from '../lib/appwrite';
 
@@ -111,12 +110,11 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
               className="group relative block min-h-[360px] cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-navy to-accent lg:col-span-2"
             >
               {heroArticle?.featuredImage && (
-                <Image
+                <img
                   src={heroArticle.featuredImage}
                   alt={heroArticle.title}
-                  fill
-                  className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
-                  priority
+                  className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
+                  loading="eager"
                 />
               )}
               <div className="hero-overlay absolute inset-0" />
@@ -145,12 +143,11 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                 >
                   <div className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-navy to-accent text-xl">
                     {a.featuredImage ? (
-                      <Image
+                      <img
                         src={a.featuredImage}
                         alt={a.title}
-                        width={80}
-                        height={64}
                         className="h-full w-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <FiFileText size={18} />
@@ -275,13 +272,15 @@ export async function getStaticProps() {
     const trendingArticles = trendingRes.status === 'fulfilled' ? trendingRes.value.documents : [];
     const safeLatest = latestArticles.length ? latestArticles : DEMO_ARTICLES;
     const safeTrending = trendingArticles.length ? trendingArticles : safeLatest.slice(0, 5);
+    const heroArticle = safeLatest.find((a) => a?.featuredImage) || safeLatest[0] || null;
+    const sideArticles = safeLatest.filter((a) => a?.$id !== heroArticle?.$id).slice(0, 4);
 
     return {
       props: {
         latestArticles: safeLatest,
         trendingArticles: safeTrending,
-        heroArticle: safeLatest[0] || null,
-        sideArticles: safeLatest.slice(1, 5),
+        heroArticle,
+        sideArticles,
       },
       revalidate: 60,
     };

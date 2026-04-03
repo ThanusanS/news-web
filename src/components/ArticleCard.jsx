@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FiEye, FiFileText } from 'react-icons/fi';
@@ -34,12 +33,11 @@ export default function ArticleCard({ article, variant = 'default' }) {
       >
         {article.featuredImage && (
           <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded">
-            <Image
+            <img
               src={article.featuredImage}
               alt={article.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="112px"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
             />
           </div>
         )}
@@ -64,12 +62,10 @@ export default function ArticleCard({ article, variant = 'default' }) {
     <Link href={`/${article.slug}`} className="article-card group flex flex-col">
       <div className="relative aspect-video overflow-hidden bg-stone-200 dark:bg-neutral-800">
         {article.featuredImage ? (
-          <Image
+          <img
             src={article.featuredImage}
             alt={article.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (

@@ -107,6 +107,62 @@
     @apply my-6 w-full rounded-lg;
   }
 
+  .article-prose .editor-image.align-left {
+    @apply float-left mr-4 mt-1;
+  }
+  .article-prose .editor-image.align-right {
+    @apply float-right ml-4 mt-1;
+  }
+  .article-prose .editor-image.align-center {
+    @apply mx-auto block clear-both;
+  }
+  .article-prose .editor-image.size-half {
+    width: min(48%, 420px);
+  }
+  .article-prose .editor-image.size-third {
+    width: min(33%, 320px);
+  }
+  .article-prose .editor-image.size-twoThird {
+    width: min(66%, 620px);
+  }
+  .article-prose .editor-image.size-full {
+    @apply w-full;
+  }
+  .article-prose .editor-image.crop-none {
+    aspect-ratio: auto;
+    object-fit: contain;
+  }
+  .article-prose .editor-image.crop-landscape {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    height: clamp(180px, 28vw, 420px);
+  }
+  .article-prose .editor-image.crop-square {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    height: min(60vw, 420px);
+  }
+  .article-prose .editor-image.shape-rounded {
+    @apply rounded-lg;
+  }
+  .article-prose .editor-image.shape-square {
+    border-radius: 0;
+  }
+  .article-prose .editor-image.frame-border {
+    @apply border border-stone-300 dark:border-neutral-700;
+  }
+  .article-prose .editor-image.frame-shadow {
+    @apply shadow-lg;
+  }
+  .article-prose .image-caption {
+    @apply -mt-3 mb-6 text-center text-xs italic text-stone-500 dark:text-neutral-500;
+  }
+  .article-prose::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+
   /* ── Status badges ── */
   .badge-published {
     @apply rounded bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-800;
@@ -155,6 +211,92 @@
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   @apply pointer-events-none float-left h-0 text-stone-400 dark:text-neutral-600;
+}
+
+.ProseMirror .editor-image.align-left {
+  float: left;
+  margin: 0.25rem 1rem 0.75rem 0;
+}
+
+.ProseMirror .editor-image.align-right {
+  float: right;
+  margin: 0.25rem 0 0.75rem 1rem;
+}
+
+.ProseMirror .editor-image.align-center {
+  display: block;
+  margin: 1rem auto;
+  clear: both;
+}
+
+.ProseMirror .editor-image.size-half {
+  width: min(48%, 420px);
+}
+
+.ProseMirror .editor-image.size-third {
+  width: min(33%, 320px);
+}
+
+.ProseMirror .editor-image.size-twoThird {
+  width: min(66%, 620px);
+}
+
+.ProseMirror .editor-image.size-full {
+  width: 100%;
+}
+
+.ProseMirror .editor-image.crop-none {
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
+.ProseMirror .editor-image.crop-landscape {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  height: clamp(180px, 28vw, 420px);
+}
+
+.ProseMirror .editor-image.crop-square {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  height: min(60vw, 420px);
+}
+
+.ProseMirror .editor-image.shape-rounded {
+  border-radius: 0.5rem;
+}
+
+.ProseMirror .editor-image.shape-square {
+  border-radius: 0;
+}
+
+.ProseMirror .editor-image.frame-border {
+  border: 1px solid rgba(120, 120, 120, 0.35);
+}
+
+.ProseMirror .editor-image.frame-shadow {
+  box-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.55);
+}
+
+.ProseMirror img.ProseMirror-selectednode,
+.ProseMirror .editor-image.ProseMirror-selectednode {
+  outline: 2px solid #e94e4e;
+  outline-offset: 2px;
+}
+
+.ProseMirror .image-caption {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #7a7a7a;
+}
+
+.ProseMirror::after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
 /* ── Scrollbar ── */

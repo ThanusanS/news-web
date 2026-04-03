@@ -6,6 +6,10 @@ client
   .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://nyc.cloud.appwrite.io/v1')
   .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69c126bb001b112e80ad');
 
+const APPWRITE_ENDPOINT =
+  (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://nyc.cloud.appwrite.io/v1').replace(/\/$/, '');
+const PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69c126bb001b112e80ad';
+
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 export const account = new Account(client);
@@ -22,12 +26,29 @@ export const SUBSCRIBERS_COL =
   process.env.NEXT_PUBLIC_APPWRITE_SUBSCRIBERS_COLLECTION_ID || 'subscribers';
 export const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'media';
 
+function buildStorageUrl(fileId, action, params = {}) {
+  const base = `${APPWRITE_ENDPOINT}/storage/buckets/${encodeURIComponent(BUCKET_ID)}/files/${encodeURIComponent(fileId)}/${action}`;
+  const search = new URLSearchParams({ project: PROJECT_ID, ...params });
+  return `${base}?${search.toString()}`;
+}
+
+function normalizeArticle(doc) {
+  if (!doc) return doc;
+  const featuredImage = doc.featuredImage || '';
+  const newsImage = doc.newsImage || '';
+  return { ...doc, featuredImage, newsImage };
+}
+
 // ─── Article helpers ────────────────────────────────────────────────────────
 async function listArticlesWithFallback(querySets) {
   let lastError;
   for (const queries of querySets) {
     try {
-      return await databases.listDocuments(DB_ID, ARTICLES_COL, queries);
+      const result = await databases.listDocuments(DB_ID, ARTICLES_COL, queries);
+      return {
+        ...result,
+        documents: (result.documents || []).map(normalizeArticle),
+      };
     } catch (err) {
       lastError = err;
     }
@@ -36,19 +57,29 @@ async function listArticlesWithFallback(querySets) {
 }
 
 export async function getArticles({ category, limit = 10, offset = 0, status = 'published' } = {}) {
-  const q1 = [Query.orderDesc('publishedAt'), Query.limit(limit), Query.offset(offset)];
-  const q2 = [Query.orderDesc('$createdAt'), Query.limit(limit), Query.offset(offset)];
+  const nowIso = new Date().toISOString();
+  const q1 = [Query.orderDesc('$createdAt'), Query.limit(limit), Query.offset(offset)];
 
-  if (status) q1.unshift(Query.equal('status', status));
+  if (status) {
+    q1.unshift(Query.equal('status', status));
+  }
   if (category) {
     q1.push(Query.equal('category', category));
-    q2.push(Query.equal('category', category));
   }
 
-  return listArticlesWithFallback([q1, q2, [Query.limit(limit), Query.offset(offset)]]);
+  const result = await listArticlesWithFallback([q1, [Query.limit(limit), Query.offset(offset)]]);
+  if (status !== 'published') return result;
+
+  return {
+    ...result,
+    documents: (result.documents || []).filter(
+      (doc) => !doc.publishedAt || String(doc.publishedAt) <= nowIso
+    ),
+  };
 }
 
 export async function getArticleBySlug(slug) {
+  const nowIso = new Date().toISOString();
   let res;
   try {
     res = await databases.listDocuments(DB_ID, ARTICLES_COL, [
@@ -62,15 +93,30 @@ export async function getArticleBySlug(slug) {
       Query.limit(1),
     ]);
   }
-  return res.documents[0] || null;
+  const article = normalizeArticle(res.documents[0] || null);
+  if (article?.publishedAt && String(article.publishedAt) > nowIso) return null;
+  return article;
+}
+
+export async function getArticleById(id) {
+  const doc = await databases.getDocument(DB_ID, ARTICLES_COL, id);
+  return normalizeArticle(doc);
 }
 
 export async function getTrendingArticles(limit = 5) {
-  return listArticlesWithFallback([
-    [Query.equal('status', 'published'), Query.orderDesc('views'), Query.limit(limit)],
-    [Query.equal('status', 'published'), Query.orderDesc('$createdAt'), Query.limit(limit)],
-    [Query.orderDesc('$createdAt'), Query.limit(limit)],
+  const nowIso = new Date().toISOString();
+  const result = await listArticlesWithFallback([
+    [Query.equal('status', 'published'), Query.orderDesc('views'), Query.limit(limit * 2)],
+    [Query.equal('status', 'published'), Query.orderDesc('$createdAt'), Query.limit(limit * 2)],
+    [Query.orderDesc('$createdAt'), Query.limit(limit * 2)],
   ]);
+
+  return {
+    ...result,
+    documents: (result.documents || [])
+      .filter((doc) => !doc.publishedAt || String(doc.publishedAt) <= nowIso)
+      .slice(0, limit),
+  };
 }
 
 export async function incrementViews(articleId, currentViews) {
@@ -144,11 +190,35 @@ export async function getAdminUser() {
 
 // ─── Storage helpers ─────────────────────────────────────────────────────────
 export function getFilePreviewUrl(fileId, width = 800, height = 450) {
-  return storage.getFilePreview(BUCKET_ID, fileId, width, height).href;
+  return buildStorageUrl(fileId, 'preview', {
+    width: String(width),
+    height: String(height),
+    quality: '90',
+  });
+}
+
+export function getFileViewUrl(fileId) {
+  return buildStorageUrl(fileId, 'view');
 }
 
 export async function uploadFile(file) {
-  return storage.createFile(BUCKET_ID, ID.unique(), file);
+  if (!BUCKET_ID) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID in .env.local. Set it to your Appwrite bucket ID.'
+    );
+  }
+
+  try {
+    return await storage.createFile(BUCKET_ID, ID.unique(), file);
+  } catch (err) {
+    const msg = err?.message || '';
+    if (/Storage bucket with the requested ID could not be found/i.test(msg)) {
+      throw new Error(
+        `Storage bucket '${BUCKET_ID}' not found. Set NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID to the real bucket ID from Appwrite Storage, or create a bucket with this ID.`
+      );
+    }
+    throw err;
+  }
 }
 
 // ─── Newsletter ───────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { SWRConfig } from 'swr';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/globals.css';
+import 'react-image-crop/dist/ReactCrop.css';
 
 const SWR_CONFIG = {
   fetcher: (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(r.statusText); return r.json(); }),

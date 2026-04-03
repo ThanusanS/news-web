@@ -30,7 +30,17 @@ export default function AllPostsPage() {
     try {
       const queries = [Query.orderDesc('$createdAt'), Query.limit(50)];
       if (category) queries.push(Query.equal('category', category));
-      if (status) queries.push(Query.equal('status', status));
+      if (status === 'private') {
+        queries.push(Query.equal('status', 'archived'));
+      } else if (status === 'scheduled') {
+        queries.push(Query.equal('status', 'published'));
+        queries.push(Query.greaterThan('publishedAt', new Date().toISOString()));
+      } else if (status === 'published') {
+        queries.push(Query.equal('status', 'published'));
+        queries.push(Query.lessThanEqual('publishedAt', new Date().toISOString()));
+      } else if (status) {
+        queries.push(Query.equal('status', status));
+      }
       const res = await databases.listDocuments(DB_ID, ARTICLES_COL, queries);
       setArticles(res.documents);
     } catch {
@@ -90,6 +100,8 @@ export default function AllPostsPage() {
         >
           <option value="">All Status</option>
           <option value="published">Published</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="private">Private</option>
           <option value="draft">Draft</option>
         </select>
         <Link href="/admin/new-post" className="btn-primary">
@@ -124,7 +136,26 @@ export default function AllPostsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((a) => (
+                  filtered.map((a) => {
+                      const isScheduled =
+                        a.status === 'published' &&
+                        a.publishedAt &&
+                        new Date(a.publishedAt).getTime() > Date.now();
+                      const uiStatus =
+                        a.status === 'archived'
+                          ? 'private'
+                          : isScheduled
+                            ? 'scheduled'
+                            : a.status || 'draft';
+                      const badgeClass =
+                        uiStatus === 'published'
+                          ? 'badge-published'
+                          : uiStatus === 'scheduled'
+                            ? 'bg-blue-100 text-blue-700 rounded px-2 py-0.5 text-xs font-bold uppercase'
+                            : uiStatus === 'private'
+                              ? 'bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200 rounded px-2 py-0.5 text-xs font-bold uppercase'
+                              : 'badge-draft';
+                    return (
                     <tr
                       key={a.$id}
                       className="border-t border-stone-100 transition-colors hover:bg-stone-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
@@ -141,11 +172,7 @@ export default function AllPostsPage() {
                         {a.publishedAt ? format(new Date(a.publishedAt), 'MMM d, yyyy') : '—'}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={a.status === 'published' ? 'badge-published' : 'badge-draft'}
-                        >
-                          {a.status?.toUpperCase() || 'DRAFT'}
-                        </span>
+                        <span className={badgeClass}>{uiStatus.toUpperCase()}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
@@ -174,7 +201,8 @@ export default function AllPostsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>

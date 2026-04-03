@@ -34,6 +34,7 @@ const nextConfig = {
   poweredByHeader: false,
   images: {
     domains: [
+      'nyc.cloud.appwrite.io',
       'cloud.appwrite.io',
       'fra.cloud.appwrite.io',
       'images.unsplash.com',

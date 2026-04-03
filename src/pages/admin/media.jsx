@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { storage, BUCKET_ID, ID } from '../../lib/appwrite';
+import { storage, BUCKET_ID, ID, getFilePreviewUrl, getFileViewUrl } from '../../lib/appwrite';
 import toast from 'react-hot-toast';
 import { FiUpload, FiTrash2, FiCopy, FiImage, FiFile } from 'react-icons/fi';
 
@@ -47,11 +47,11 @@ export default function MediaPage() {
   }
 
   function getPreviewUrl(fileId) {
-    return storage.getFilePreview(BUCKET_ID, fileId, 400, 300).href;
+    return getFilePreviewUrl(fileId, 400, 300);
   }
 
   function getFullUrl(fileId) {
-    return storage.getFileView(BUCKET_ID, fileId).href;
+    return getFileViewUrl(fileId);
   }
 
   function copyUrl(fileId) {

@@ -1,11 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import slugify from 'slugify';
 import toast from 'react-hot-toast';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { createArticle, uploadFile, getFilePreviewUrl, ID } from '../../lib/appwrite';
+import {
+  createArticle,
+  uploadFile,
+  getFilePreviewUrl,
+  getFileViewUrl,
+  storage,
+  BUCKET_ID,
+  Query,
+} from '../../lib/appwrite';
 
 // Dynamic import for TipTap (SSR off)
 const RichEditor = dynamic(() => import('../../components/RichEditor'), {
@@ -36,13 +44,18 @@ export default function NewPostPage() {
     excerpt: '',
     content: '',
     featuredImage: '',
+    newsImage: '',
     metaTitle: '',
     metaDescription: '',
     focusKeyword: '',
     tags: '',
     status: 'draft',
   });
-  const [imageFile, setImageFile] = useState(null);
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [showNewsMediaPicker, setShowNewsMediaPicker] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Auto-generate slug from title
@@ -58,36 +71,185 @@ export default function NewPostPage() {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  async function handleImageUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setImageFile(file);
+  function formatUploadError(err) {
+    const msg = err?.message || 'Image upload failed.';
+    if (/not authorized|missing scope|permission/i.test(msg)) {
+      return 'Upload blocked by Appwrite permissions. Grant create/read access for this bucket.';
+    }
+    if (/network|failed to fetch|cors/i.test(msg)) {
+      return 'Upload failed due to network or CORS. Add your domain as an Appwrite web platform.';
+    }
+    return msg;
+  }
+
+  async function loadMediaFiles() {
+    setMediaLoading(true);
     try {
-      const uploaded = await uploadFile(file);
-      const url = getFilePreviewUrl(uploaded.$id, 1200, 675);
-      setForm((f) => ({ ...f, featuredImage: url }));
-      toast.success('Image uploaded!');
+      const res = await storage.listFiles(BUCKET_ID, [Query.orderDesc('$createdAt'), Query.limit(24)]);
+      const images = (res.files || []).filter((file) => file.mimeType?.startsWith('image/'));
+      setMediaFiles(images);
     } catch {
-      toast.error('Image upload failed. Enter URL manually.');
+      setMediaFiles([]);
+      toast.error('Failed to load media files.');
+    }
+    setMediaLoading(false);
+  }
+
+  async function toggleMediaPicker() {
+    const next = !showMediaPicker;
+    setShowMediaPicker(next);
+    if (next && mediaFiles.length === 0) {
+      await loadMediaFiles();
     }
   }
 
-  async function handleSubmit(status) {
+  async function toggleNewsMediaPicker() {
+    const next = !showNewsMediaPicker;
+    setShowNewsMediaPicker(next);
+    if (next && mediaFiles.length === 0) {
+      await loadMediaFiles();
+    }
+  }
+
+  function selectMediaImage(fileId) {
+    const url = getFileViewUrl(fileId);
+    setForm((f) => ({ ...f, featuredImage: url }));
+    toast.success('Thumbnail selected from media library.');
+  }
+
+  function selectNewsMediaImage(fileId) {
+    const url = getFileViewUrl(fileId);
+    setForm((f) => ({ ...f, newsImage: url }));
+    toast.success('News image selected from media library.');
+  }
+
+  async function handleThumbnailUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (jpg, png, webp, etc.).');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Image is too large. Max size is 8MB.');
+      return;
+    }
+
+    try {
+      const uploaded = await uploadFile(file);
+      const url = getFileViewUrl(uploaded.$id);
+      setForm((f) => ({ ...f, featuredImage: url }));
+      toast.success('Thumbnail uploaded!');
+    } catch (err) {
+      toast.error(formatUploadError(err));
+    }
+  }
+
+  async function handleNewsImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (jpg, png, webp, etc.).');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Image is too large. Max size is 8MB.');
+      return;
+    }
+
+    try {
+      const uploaded = await uploadFile(file);
+      const url = getFileViewUrl(uploaded.$id);
+      setForm((f) => ({ ...f, newsImage: url }));
+      toast.success('News image uploaded!');
+    } catch (err) {
+      toast.error(formatUploadError(err));
+    }
+  }
+
+  async function uploadContentImage(file) {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (jpg, png, webp, etc.).');
+      return null;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Image is too large. Max size is 8MB.');
+      return null;
+    }
+
+    try {
+      const uploaded = await uploadFile(file);
+      toast.success('Inline image uploaded.');
+      return getFileViewUrl(uploaded.$id);
+    } catch (err) {
+      toast.error(formatUploadError(err));
+      return null;
+    }
+  }
+
+  async function handleSubmit(action) {
     setSaving(true);
     try {
+      if ((action === 'published' || action === 'private') && !form.featuredImage) {
+        toast.error('Please select a thumbnail image before publishing/private save.');
+        setSaving(false);
+        return;
+      }
+
       const tagsArray = form.tags
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean);
-      await createArticle({
+
+      const scheduleIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+      const nowIso = new Date().toISOString();
+      const isFutureSchedule = Boolean(scheduleIso && scheduleIso > nowIso);
+
+      let nextStatus = action;
+      let publishedAt = null;
+      if (action === 'published') {
+        if (isFutureSchedule) {
+          nextStatus = 'published';
+          publishedAt = scheduleIso;
+        } else {
+          nextStatus = 'published';
+          publishedAt = nowIso;
+        }
+      }
+      if (action === 'draft') {
+        nextStatus = 'draft';
+      }
+      if (action === 'private') {
+        nextStatus = 'archived';
+      }
+
+      const created = await createArticle({
         ...form,
         tags: tagsArray,
-        status,
+        status: nextStatus,
         views: 0,
-        publishedAt: status === 'published' ? new Date().toISOString() : null,
-        updatedAt: new Date().toISOString(),
+        publishedAt,
+        updatedAt: nowIso,
       });
-      toast.success(status === 'published' ? '🎉 Article published!' : 'Draft saved.');
+
+      if (form.featuredImage && !created?.featuredImage) {
+        toast.error(
+          'Image URL was not saved in Appwrite. Add a featuredImage string attribute to articles collection.'
+        );
+      }
+
+      const successMessage =
+        action === 'published' && isFutureSchedule
+          ? 'Article scheduled successfully.'
+          : nextStatus === 'archived'
+            ? 'Article saved as private.'
+            : nextStatus === 'published'
+              ? 'Article published successfully.'
+              : 'Draft saved.';
+
+      toast.success(successMessage);
       router.push('/admin/posts');
     } catch (err) {
       toast.error('Failed to save: ' + err.message);
@@ -141,6 +303,7 @@ export default function NewPostPage() {
             <RichEditor
               content={form.content}
               onChange={(html) => setForm((f) => ({ ...f, content: html }))}
+              onUploadImage={uploadContentImage}
             />
           </div>
 
@@ -168,13 +331,29 @@ export default function NewPostPage() {
           {/* Publish box */}
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Publish</h3>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Schedule (optional)
+            </label>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="form-input mb-3 text-xs"
+            />
             <div className="space-y-2">
               <button
                 onClick={() => handleSubmit('published')}
                 disabled={saving || !form.title || !form.content}
                 className="btn-primary w-full py-2.5 disabled:opacity-40"
               >
-                {saving ? 'Saving...' : '🚀 Publish Now'}
+                {saving ? 'Saving...' : scheduledAt ? 'Schedule / Publish' : 'Publish Now'}
+              </button>
+              <button
+                onClick={() => handleSubmit('private')}
+                disabled={saving || !form.title}
+                className="w-full rounded border border-stone-300 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Save Private
               </button>
               <button
                 onClick={() => handleSubmit('draft')}
@@ -215,27 +394,175 @@ export default function NewPostPage() {
             </div>
           </div>
 
-          {/* Featured image */}
+          {/* Thumbnail */}
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-3 text-sm font-semibold">Featured Image</h3>
+            <h3 className="mb-3 text-sm font-semibold">Thumbnail (YouTube style)</h3>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-8 text-center transition-colors hover:border-accent dark:border-neutral-700">
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-              <span className="text-2xl">📷</span>
+              <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" />
+              <span className="text-2xl">IMG</span>
               <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">
-                Click to upload or...
+                Upload custom thumbnail
               </p>
             </label>
+
+            <div className="mb-2 flex gap-2">
+              <button
+                type="button"
+                onClick={toggleMediaPicker}
+                className="flex-1 rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                {showMediaPicker ? 'Hide Media Library' : 'Choose From Media Library'}
+              </button>
+              {showMediaPicker && (
+                <button
+                  type="button"
+                  onClick={loadMediaFiles}
+                  className="rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  Refresh
+                </button>
+              )}
+            </div>
+
+            {showMediaPicker && (
+              <div className="mb-3 max-h-48 overflow-y-auto rounded border border-stone-200 p-2 dark:border-neutral-700">
+                {mediaLoading ? (
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
+                ) : mediaFiles.length === 0 ? (
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {mediaFiles.map((file) => (
+                      (() => {
+                        const fileUrl = getFileViewUrl(file.$id);
+                        const selected = form.featuredImage === fileUrl;
+                        return (
+                      <button
+                        key={file.$id}
+                        type="button"
+                        onClick={() => selectMediaImage(file.$id)}
+                        className={`group overflow-hidden rounded border dark:border-neutral-700 ${selected ? 'border-accent ring-1 ring-accent' : 'border-stone-200 hover:border-accent'}`}
+                        title={file.name}
+                      >
+                        <img
+                          src={getFilePreviewUrl(file.$id, 200, 120)}
+                          alt={file.name}
+                          className="h-16 w-full object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </button>
+                        );
+                      })()
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <input
               type="text"
               value={form.featuredImage}
               onChange={set('featuredImage')}
-              placeholder="...paste image URL"
+              placeholder="Thumbnail URL"
               className="form-input text-xs"
             />
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, featuredImage: '' }))}
+              className="mt-2 w-full rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            >
+              Remove Thumbnail
+            </button>
             {form.featuredImage && (
               <img
                 src={form.featuredImage}
-                alt="Preview"
+                alt="Thumbnail preview"
+                className="mt-2 aspect-video w-full rounded object-cover"
+              />
+            )}
+          </div>
+
+          {/* News image */}
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">News Image (Article Header)</h3>
+            <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-8 text-center transition-colors hover:border-accent dark:border-neutral-700">
+              <input type="file" accept="image/*" onChange={handleNewsImageUpload} className="hidden" />
+              <span className="text-2xl">IMG</span>
+              <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">
+                Upload news image
+              </p>
+            </label>
+
+            <div className="mb-2 flex gap-2">
+              <button
+                type="button"
+                onClick={toggleNewsMediaPicker}
+                className="flex-1 rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                {showNewsMediaPicker ? 'Hide Media Library' : 'Choose From Media Library'}
+              </button>
+              {showNewsMediaPicker && (
+                <button
+                  type="button"
+                  onClick={loadMediaFiles}
+                  className="rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                  Refresh
+                </button>
+              )}
+            </div>
+
+            {showNewsMediaPicker && (
+              <div className="mb-3 max-h-48 overflow-y-auto rounded border border-stone-200 p-2 dark:border-neutral-700">
+                {mediaLoading ? (
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">Loading images...</p>
+                ) : mediaFiles.length === 0 ? (
+                  <p className="text-xs text-stone-400 dark:text-neutral-500">No uploaded images found.</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {mediaFiles.map((file) => {
+                      const fileUrl = getFileViewUrl(file.$id);
+                      const selected = form.newsImage === fileUrl;
+                      return (
+                        <button
+                          key={`news-${file.$id}`}
+                          type="button"
+                          onClick={() => selectNewsMediaImage(file.$id)}
+                          className={`group overflow-hidden rounded border dark:border-neutral-700 ${selected ? 'border-accent ring-1 ring-accent' : 'border-stone-200 hover:border-accent'}`}
+                          title={file.name}
+                        >
+                          <img
+                            src={getFilePreviewUrl(file.$id, 200, 120)}
+                            alt={file.name}
+                            className="h-16 w-full object-cover transition-transform group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <input
+              type="text"
+              value={form.newsImage}
+              onChange={set('newsImage')}
+              placeholder="News image URL"
+              className="form-input text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, newsImage: '' }))}
+              className="mt-2 w-full rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            >
+              Remove News Image
+            </button>
+            {form.newsImage && (
+              <img
+                src={form.newsImage}
+                alt="News image preview"
                 className="mt-2 aspect-video w-full rounded object-cover"
               />
             )}
