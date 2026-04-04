@@ -34,6 +34,20 @@ node scripts/seed.js
 ## Deploy Vercel
 vercel --prod
 
+Set these Environment Variables in Vercel Project Settings before deploying:
+
+- NEXT_PUBLIC_APPWRITE_ENDPOINT
+- NEXT_PUBLIC_APPWRITE_PROJECT_ID
+- NEXT_PUBLIC_APPWRITE_DATABASE_ID
+- NEXT_PUBLIC_APPWRITE_COMMENTS_COLLECTION_ID
+- APPWRITE_ENDPOINT
+- APPWRITE_PROJECT_ID
+- APPWRITE_API_KEY
+- APPWRITE_DATABASE_ID
+- APPWRITE_COMMENTS_COLLECTION_ID
+
+APPWRITE_API_KEY should have Database read/write permission for the comments collection.
+
 ## Run Tests
 npm test
 npm run test:coverage

@@ -189,9 +189,14 @@ export default function ArticlePage({ article, relatedArticles }) {
         }),
       });
 
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
       if (!res.ok) {
-        setCommentNotice(data?.error || 'Failed to submit comment.');
+        setCommentNotice(data?.error || `Failed to submit comment (${res.status}).`);
         return;
       }
 

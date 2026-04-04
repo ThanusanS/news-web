@@ -1,6 +1,51 @@
 import { databases, DB_ID, COMMENTS_COL, ID, Query } from '../../../lib/appwrite';
 import { commentSchema } from '../../../utils/validators';
 import isomorphicDompurify from 'isomorphic-dompurify';
+import { Client, Databases } from 'appwrite';
+
+const SERVER_APPWRITE_ENDPOINT =
+  process.env.APPWRITE_ENDPOINT || process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+const SERVER_APPWRITE_PROJECT_ID =
+  process.env.APPWRITE_PROJECT_ID || process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
+const SERVER_APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
+const COMMENTS_DB_ID = process.env.APPWRITE_DATABASE_ID || DB_ID;
+const COMMENTS_COLLECTION_ID = process.env.APPWRITE_COMMENTS_COLLECTION_ID || COMMENTS_COL;
+
+function createCommentsDatabaseClient() {
+  if (!SERVER_APPWRITE_ENDPOINT || !SERVER_APPWRITE_PROJECT_ID || !SERVER_APPWRITE_API_KEY) {
+    return databases;
+  }
+
+  const serverClient = new Client()
+    .setEndpoint(SERVER_APPWRITE_ENDPOINT)
+    .setProject(SERVER_APPWRITE_PROJECT_ID)
+    .setKey(SERVER_APPWRITE_API_KEY);
+
+  return new Databases(serverClient);
+}
+
+const commentsDatabase = createCommentsDatabaseClient();
+
+function sanitizePlainText(value) {
+  const raw = String(value ?? '');
+
+  try {
+    const purifier =
+      isomorphicDompurify?.sanitize
+        ? isomorphicDompurify
+        : isomorphicDompurify?.default?.sanitize
+          ? isomorphicDompurify.default
+          : null;
+
+    if (purifier?.sanitize) {
+      return String(purifier.sanitize(raw, { ALLOWED_TAGS: [] })).trim();
+    }
+  } catch {
+    // Fall through to a minimal sanitizer so API never crashes due sanitizer runtime issues.
+  }
+
+  return raw.replace(/<[^>]*>/g, '').trim();
+}
 
 const commentRateMap = new Map();
 function canComment(ip) {
@@ -199,7 +244,12 @@ async function createCommentWithFallback(payload) {
   // Retry against schema mismatches so comments keep working across Appwrite schema drift.
   for (let i = 0; i < 20; i += 1) {
     try {
-      return await databases.createDocument(DB_ID, COMMENTS_COL, ID.unique(), doc);
+      return await commentsDatabase.createDocument(
+        COMMENTS_DB_ID,
+        COMMENTS_COLLECTION_ID,
+        ID.unique(),
+        doc
+      );
     } catch (err) {
       const unknown = parseUnknownAttribute(err);
       const unknownKey = resolveObjectKeyByName(doc, unknown);
@@ -224,7 +274,7 @@ async function createCommentWithFallback(payload) {
     }
   }
 
-  return databases.createDocument(DB_ID, COMMENTS_COL, ID.unique(), doc);
+  return commentsDatabase.createDocument(COMMENTS_DB_ID, COMMENTS_COLLECTION_ID, ID.unique(), doc);
 }
 
 async function listCommentsWithFallback(rawArticleId) {
@@ -252,7 +302,11 @@ async function listCommentsWithFallback(rawArticleId) {
   let lastErr;
   for (const queries of querySets) {
     try {
-      const result = await databases.listDocuments(DB_ID, COMMENTS_COL, queries);
+      const result = await commentsDatabase.listDocuments(
+        COMMENTS_DB_ID,
+        COMMENTS_COLLECTION_ID,
+        queries
+      );
       if (queries.length === 2) {
         const docs = Array.isArray(result?.documents)
           ? result.documents
@@ -309,24 +363,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: issueMessage, issues: parsed.error.issues });
     }
 
-    const { articleId, parentId, name, email, content } = parsed.data;
-    const normalizedArticleId = normalizeArticleIdKey(articleId);
-    const safeName = isomorphicDompurify.sanitize(name, { ALLOWED_TAGS: [] });
-    const safeEmail =
-      (email || '').trim() ||
-      `${
-        safeName
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '.') || 'reader'
-      }@comment.local`;
-
-    // Sanitize content
-    const cleanContent = isomorphicDompurify.sanitize(content, { ALLOWED_TAGS: [] });
-
-    if (isSpam(cleanContent)) return res.status(400).json({ error: 'Comment flagged as spam.' });
-
     try {
+      const { articleId, parentId, name, email, content } = parsed.data;
+      const normalizedArticleId = normalizeArticleIdKey(articleId);
+      const safeName = sanitizePlainText(name);
+      const safeEmail =
+        (email || '').trim() ||
+        `${
+          safeName
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '.') || 'reader'
+        }@comment.local`;
+
+      const cleanContent = sanitizePlainText(content);
+
+      if (isSpam(cleanContent)) return res.status(400).json({ error: 'Comment flagged as spam.' });
+
       const comment = await createCommentWithFallback({
         articleId: normalizedArticleId,
         name: safeName,
@@ -372,11 +425,17 @@ export default async function handler(req, res) {
       });
     } catch (err) {
       console.error('[API] Comments POST error:', err);
-      const msg = err?.message || '';
+      const msg = String(err?.message || err?.response?.message || '');
+      if (/not found|collection with the requested id could not be found/i.test(msg)) {
+        return res.status(500).json({
+          error:
+            'Comments collection is not reachable in production. Set APPWRITE_DATABASE_ID and APPWRITE_COMMENTS_COLLECTION_ID in Vercel env.',
+        });
+      }
       if (/not authorized|missing scope|permission/i.test(msg)) {
         return res.status(403).json({
           error:
-            'Comments write permission is blocked in Appwrite. Allow create access on comments collection.',
+            'Comments write permission is blocked in Appwrite. Add APPWRITE_API_KEY in Vercel (recommended) or allow guest create access on comments collection.',
         });
       }
       return res.status(500).json({ error: 'Failed to post comment' });
