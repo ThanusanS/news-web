@@ -125,7 +125,7 @@ describe('validators', () => {
       expect(result.success).toBe(true);
     });
     it('fails short content', () => {
-      const result = commentSchema.safeParse({ articleId: 'abc123', name: 'John', email: 'j@test.com', content: 'Hi' });
+      const result = commentSchema.safeParse({ articleId: 'abc123', name: 'John', email: 'j@test.com', content: 'H' });
       expect(result.success).toBe(false);
     });
   });

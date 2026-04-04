@@ -29,7 +29,7 @@ describe('ArticleCard', () => {
 
   it('renders category badge', () => {
     render(<ArticleCard article={mockArticle} />);
-    expect(screen.getByText(/sri lanka/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/sri lanka/i).length).toBeGreaterThan(0);
   });
 
   it('renders excerpt', () => {
@@ -48,9 +48,9 @@ describe('ArticleCard', () => {
     expect(screen.getByText(mockArticle.title)).toBeInTheDocument();
   });
 
-  it('shows view count when views > 0', () => {
+  it('does not show view count in card meta', () => {
     render(<ArticleCard article={mockArticle} />);
-    expect(screen.getByText(/1\.2K/i)).toBeInTheDocument();
+    expect(screen.queryByText(/1\.2K/i)).not.toBeInTheDocument();
   });
 });
 

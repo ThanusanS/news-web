@@ -1062,27 +1062,27 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     <div className={wrapperClass}>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border-b border-stone-200 bg-stone-50 p-2 dark:border-neutral-700 dark:bg-neutral-800">
-        {TOOLBAR_BUTTONS.map((btn) => (
+        {TOOLBAR_BUTTONS.map((btn) =>
           (() => {
             const disabled = typeof btn.can === 'function' ? !btn.can(editor) : false;
             return (
-          <button
-            key={btn.label}
-            type="button"
-            title={btn.title}
-            disabled={disabled}
-            onClick={() => !disabled && btn.action(editor)}
-            className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
-              btn.active(editor)
-                ? 'border-accent bg-accent text-white'
-                : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
-            }`}
-          >
-            {btn.label}
-          </button>
+              <button
+                key={btn.label}
+                type="button"
+                title={btn.title}
+                disabled={disabled}
+                onClick={() => !disabled && btn.action(editor)}
+                className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
+                  btn.active(editor)
+                    ? 'border-accent bg-accent text-white'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+                }`}
+              >
+                {btn.label}
+              </button>
             );
           })()
-        ))}
+        )}
         <button
           type="button"
           onClick={addImage}

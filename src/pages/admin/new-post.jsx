@@ -103,7 +103,6 @@ export default function NewPostPage() {
           setAutosaveIntervalMs(Number(prefs.intervalMs));
         }
       }
-
     } catch {}
   }, []);
 
@@ -766,7 +765,7 @@ export default function NewPostPage() {
             {form.newsImage && (
               <img
                 src={form.newsImage}
-                alt="News image preview"
+                alt="News preview"
                 className="mt-2 aspect-video w-full rounded object-cover"
               />
             )}
