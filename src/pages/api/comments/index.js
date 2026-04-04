@@ -1,6 +1,5 @@
 import { databases, DB_ID, COMMENTS_COL, ID, Query } from '../../../lib/appwrite';
 import { commentSchema } from '../../../utils/validators';
-import isomorphicDompurify from 'isomorphic-dompurify';
 import { Client, Databases } from 'appwrite';
 
 const SERVER_APPWRITE_ENDPOINT =
@@ -28,23 +27,12 @@ const commentsDatabase = createCommentsDatabaseClient();
 
 function sanitizePlainText(value) {
   const raw = String(value ?? '');
-
-  try {
-    const purifier =
-      isomorphicDompurify?.sanitize
-        ? isomorphicDompurify
-        : isomorphicDompurify?.default?.sanitize
-          ? isomorphicDompurify.default
-          : null;
-
-    if (purifier?.sanitize) {
-      return String(purifier.sanitize(raw, { ALLOWED_TAGS: [] })).trim();
-    }
-  } catch {
-    // Fall through to a minimal sanitizer so API never crashes due sanitizer runtime issues.
-  }
-
-  return raw.replace(/<[^>]*>/g, '').trim();
+  return raw
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 const commentRateMap = new Map();
