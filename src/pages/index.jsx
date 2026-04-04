@@ -59,9 +59,7 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                   {heroArticle?.title || 'Welcome to CeylonUpdates — Your Daily News & Tech Source'}
                 </h1>
                 <p className="text-sm text-white/70">
-                  By {heroArticle?.author || 'Staff Writer'} &nbsp;·&nbsp;{' '}
-                  {Number(heroArticle?.views || 0).toLocaleString('en-US')} views &nbsp;·&nbsp; 5
-                  min read
+                  By {heroArticle?.author || 'Staff Writer'} &nbsp;·&nbsp; 5 min read
                 </p>
               </div>
             </Link>
@@ -94,8 +92,7 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                       {a.title}
                     </h3>
                     <p className="mt-1 text-[11px] text-stone-400 dark:text-neutral-600">
-                      {Number(a.views || 0).toLocaleString('en-US')} views ·{' '}
-                      {Math.ceil((a.content?.split(' ')?.length || 400) / 200)} min
+                      {Math.ceil((a.content?.split(' ')?.length || 400) / 200)} min read
                     </p>
                   </div>
                 </Link>
@@ -134,6 +131,60 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
               {/* In-article ad */}
               <div className="mb-8 flex justify-center">
                 <AdSense type="inArticle" />
+              </div>
+
+              {/* Sri Lanka News */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">Sri Lanka News</h2>
+                  <Link
+                    href="/category/sri-lanka"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All Sri Lanka News →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('sri-lanka').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
+              </div>
+
+              {/* World News */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">World News</h2>
+                  <Link
+                    href="/category/world"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All World News →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('world').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Tech News */}
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between border-b-2 border-stone-200 pb-2 dark:border-neutral-800">
+                  <h2 className="section-title">Tech News</h2>
+                  <Link
+                    href="/category/tech-news"
+                    className="text-xs font-bold text-accent hover:underline"
+                  >
+                    All Tech News →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {getSectionArticles('tech-news').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
+                </div>
               </div>
 
               {/* AI & Innovation */}

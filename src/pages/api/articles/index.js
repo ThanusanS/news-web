@@ -1,4 +1,4 @@
-import { databases, DB_ID, ARTICLES_COL, Query, ID } from '../../../lib/appwrite';
+import { databases, DB_ID, ARTICLES_COL, Query, createArticle } from '../../../lib/appwrite';
 import { articleSchema } from '../../../utils/validators';
 
 const ALLOWED_ORIGINS = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
@@ -8,7 +8,10 @@ const rateLimitMap = new Map();
 function rateLimit(ip, max = 60, windowMs = 60000) {
   const now = Date.now();
   const entry = rateLimitMap.get(ip) || { count: 0, start: now };
-  if (now - entry.start > windowMs) { entry.count = 0; entry.start = now; }
+  if (now - entry.start > windowMs) {
+    entry.count = 0;
+    entry.start = now;
+  }
   entry.count++;
   rateLimitMap.set(ip, entry);
   return entry.count <= max;
@@ -32,8 +35,14 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const {
-        category, status = 'published', limit = '12', offset = '0',
-        sort = 'publishedAt', search, featured, tag,
+        category,
+        status = 'published',
+        limit = '12',
+        offset = '0',
+        sort = 'publishedAt',
+        search,
+        featured,
+        tag,
       } = req.query;
 
       const queries = [Query.limit(Math.min(parseInt(limit), 50)), Query.offset(parseInt(offset))];
@@ -86,7 +95,7 @@ export default async function handler(req, res) {
         updatedAt: new Date().toISOString(),
       };
 
-      const doc = await databases.createDocument(DB_ID, ARTICLES_COL, ID.unique(), data);
+      const doc = await createArticle(data);
       return res.status(201).json(doc);
     } catch (err) {
       console.error('[API] POST /articles error:', err);

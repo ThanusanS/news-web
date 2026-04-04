@@ -6,8 +6,9 @@ client
   .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://nyc.cloud.appwrite.io/v1')
   .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69c126bb001b112e80ad');
 
-const APPWRITE_ENDPOINT =
-  (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://nyc.cloud.appwrite.io/v1').replace(/\/$/, '');
+const APPWRITE_ENDPOINT = (
+  process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://nyc.cloud.appwrite.io/v1'
+).replace(/\/$/, '');
 const PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '69c126bb001b112e80ad';
 
 export const databases = new Databases(client);
@@ -126,9 +127,85 @@ export async function incrementViews(articleId, currentViews) {
 }
 
 function parseUnknownAttribute(err) {
-  const msg = err?.message || '';
-  const match = msg.match(/Unknown attribute:\s*"([^"]+)"/i);
-  return match ? match[1] : null;
+  const candidates = [
+    err?.message,
+    err?.response?.message,
+    err?.response?.body,
+    err?.response?.error,
+  ].filter(Boolean);
+
+  for (const raw of candidates) {
+    const msg = typeof raw === 'string' ? raw : JSON.stringify(raw);
+    const match = msg.match(/Unknown attribute:\s*["'`]?([^"'`\s]+)["'`]?/i);
+    if (match?.[1]) {
+      return match[1].split('.').pop();
+    }
+  }
+
+  return null;
+}
+
+function resolvePayloadKey(payload, unknownAttr) {
+  if (!unknownAttr) return null;
+  if (Object.prototype.hasOwnProperty.call(payload, unknownAttr)) {
+    return unknownAttr;
+  }
+
+  const normalized = unknownAttr.toLowerCase();
+  const key = Object.keys(payload).find((k) => k.toLowerCase() === normalized);
+  return key || null;
+}
+
+function parseInvalidAttribute(err) {
+  const candidates = [
+    err?.message,
+    err?.response?.message,
+    err?.response?.body,
+    err?.response?.error,
+  ].filter(Boolean);
+
+  for (const raw of candidates) {
+    const msg = typeof raw === 'string' ? raw : JSON.stringify(raw);
+    const attrMatch = msg.match(/Attribute\s+["'`]?([^"'`\s]+)["'`]?\s+has\s+invalid\s+type/i);
+    if (attrMatch?.[1]) {
+      const maxLenMatch = msg.match(/no\s+longer\s+than\s+(\d+)\s+chars?/i);
+      return {
+        attribute: attrMatch[1].split('.').pop(),
+        expectsString: /valid\s+string/i.test(msg),
+        maxLength: maxLenMatch ? Number(maxLenMatch[1]) : null,
+      };
+    }
+  }
+
+  return null;
+}
+
+function sanitizeInvalidAttribute(payload, invalid) {
+  if (!invalid?.attribute) return false;
+  const key = resolvePayloadKey(payload, invalid.attribute);
+  if (!key) return false;
+
+  const value = payload[key];
+  if (invalid.expectsString) {
+    let nextValue = value;
+    if (Array.isArray(nextValue)) {
+      nextValue = nextValue[0] ?? '';
+    }
+    if (nextValue == null) {
+      nextValue = '';
+    }
+    if (typeof nextValue !== 'string') {
+      nextValue = String(nextValue);
+    }
+    if (Number.isInteger(invalid.maxLength) && invalid.maxLength >= 0) {
+      nextValue = nextValue.slice(0, invalid.maxLength);
+    }
+    payload[key] = nextValue;
+    return true;
+  }
+
+  delete payload[key];
+  return true;
 }
 
 async function createWithSchemaFallback(collectionId, data) {
@@ -138,8 +215,18 @@ async function createWithSchemaFallback(collectionId, data) {
       return await databases.createDocument(DB_ID, collectionId, ID.unique(), payload);
     } catch (err) {
       const unknownAttr = parseUnknownAttribute(err);
-      if (!unknownAttr || !(unknownAttr in payload)) throw err;
-      delete payload[unknownAttr];
+      const keyToDelete = resolvePayloadKey(payload, unknownAttr);
+      if (keyToDelete) {
+        delete payload[keyToDelete];
+        continue;
+      }
+
+      const invalidAttr = parseInvalidAttribute(err);
+      if (sanitizeInvalidAttribute(payload, invalidAttr)) {
+        continue;
+      }
+
+      throw err;
     }
   }
   return databases.createDocument(DB_ID, collectionId, ID.unique(), payload);
@@ -152,8 +239,18 @@ async function updateWithSchemaFallback(collectionId, id, data) {
       return await databases.updateDocument(DB_ID, collectionId, id, payload);
     } catch (err) {
       const unknownAttr = parseUnknownAttribute(err);
-      if (!unknownAttr || !(unknownAttr in payload)) throw err;
-      delete payload[unknownAttr];
+      const keyToDelete = resolvePayloadKey(payload, unknownAttr);
+      if (keyToDelete) {
+        delete payload[keyToDelete];
+        continue;
+      }
+
+      const invalidAttr = parseInvalidAttribute(err);
+      if (sanitizeInvalidAttribute(payload, invalidAttr)) {
+        continue;
+      }
+
+      throw err;
     }
   }
   return databases.updateDocument(DB_ID, collectionId, id, payload);

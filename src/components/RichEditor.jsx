@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { mergeAttributes } from '@tiptap/core';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
@@ -127,8 +127,20 @@ const TOOLBAR_BUTTONS = [
     action: (e) => e.chain().focus().setHorizontalRule().run(),
     active: () => false,
   },
-  { label: '↩', title: 'Undo', action: (e) => e.chain().focus().undo().run(), active: () => false },
-  { label: '↪', title: 'Redo', action: (e) => e.chain().focus().redo().run(), active: () => false },
+  {
+    label: '↩',
+    title: 'Undo',
+    action: (e) => e.chain().focus().undo().run(),
+    active: () => false,
+    can: (e) => e.can().chain().focus().undo().run(),
+  },
+  {
+    label: '↪',
+    title: 'Redo',
+    action: (e) => e.chain().focus().redo().run(),
+    active: () => false,
+    can: (e) => e.can().chain().focus().redo().run(),
+  },
 ];
 
 const TEXT_COLORS = [
@@ -254,6 +266,7 @@ const CustomImage = Image.extend({
 
 export default function RichEditor({ content, onChange, onUploadImage }) {
   const fileInputRef = useRef(null);
+  const editorAreaRef = useRef(null);
   const isNormalizingRef = useRef(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [activeImageSrc, setActiveImageSrc] = useState('');
@@ -264,15 +277,14 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
   const [mouseCrop, setMouseCrop] = useState({ unit: '%', x: 10, y: 10, width: 80, height: 80 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [inlineImageEditorPos, setInlineImageEditorPos] = useState(null);
+  const [isInlineEditorPinned, setIsInlineEditorPinned] = useState(false);
 
   function normalizeLegacyListMarkup(html) {
     let normalized = String(html || '').replace(/&nbsp;/g, ' ');
 
     // Drop standalone marker lines that create empty bullet rows.
-    normalized = normalized.replace(
-      /<p>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s*<\/p>/giu,
-      ''
-    );
+    normalized = normalized.replace(/<p>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s*<\/p>/giu, '');
 
     // Convert check/cross/point marker paragraphs to proper list items.
     normalized = normalized.replace(
@@ -293,10 +305,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     normalized = normalized.replace(/<\/ul>\s*<ul>/gi, '');
 
     // Clean malformed list items from rich HTML paste.
-    normalized = normalized.replace(
-      /<li>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)?\s*<\/li>/giu,
-      ''
-    );
+    normalized = normalized.replace(/<li>\s*(?:[•·▪◦*\-]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)?\s*<\/li>/giu, '');
     normalized = normalized.replace(
       /<li>\s*(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)\s+([\s\S]*?)<\/li>/giu,
       '<li>$1</li>'
@@ -311,8 +320,6 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     );
     normalized = normalized.replace(/<ul>\s*<\/ul>/gi, '');
     normalized = normalized.replace(/<ol>\s*<\/ol>/gi, '');
-
-    normalized = normalized.replace(/<p>\s*<\/p>/gi, '');
 
     return normalized;
   }
@@ -339,10 +346,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
 
   function convertPlainTextToStructuredHtml(text) {
     const escapeHtml = (value) =>
-      String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+      String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     const lines = String(text || '').split(/\r?\n/);
     const out = [];
@@ -395,9 +399,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
         continue;
       }
 
-      const bulletMatch = line.match(
-        /^(?:(?:[-*•▪◦·●])|(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠))\s*(.+)$/u
-      );
+      const bulletMatch = line.match(/^(?:(?:[-*•▪◦·●])|(?:✅|✔|✓|❌|✖|✗|👉|⚠️|⚠))\s*(.+)$/u);
       if (bulletMatch) {
         const bulletText = String(bulletMatch[1] || '')
           .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -506,9 +508,26 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
         return false;
       },
       handleDOMEvents: {
+        mousemove(view, event) {
+          if (isInlineEditorPinned) return false;
+
+          const target = event.target;
+          if (!(target instanceof HTMLImageElement)) return false;
+
+          const pos = view.posAtDOM(target, 0);
+          const node = view.state.doc.nodeAt(pos);
+          if (!node || node.type.name !== 'image') return false;
+
+          if (activeImagePos !== pos || activeImageSrc !== (node.attrs?.src || '')) {
+            setActiveImagePos(pos);
+            setActiveImageSrc(node.attrs?.src || '');
+          }
+          return false;
+        },
         mousedown(view, event) {
           const target = event.target;
           if (!(target instanceof HTMLImageElement)) {
+            if (isInlineEditorPinned) return false;
             setActiveImageSrc('');
             setActiveImagePos(null);
             return false;
@@ -520,6 +539,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
 
           setActiveImageSrc(node.attrs?.src || '');
           setActiveImagePos(pos);
+          setIsInlineEditorPinned(true);
           const tr = view.state.tr.setSelection(NodeSelection.create(view.state.doc, pos));
           view.dispatch(tr);
           view.focus();
@@ -533,8 +553,8 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
           const plainText = clipboard.getData('text/plain');
 
           const hasListLikePlainText =
-            plainText
-            && /(?:^|\n)\s*(?:(?:[-*•▪◦·]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)|\d+[.)])\s*/mu.test(plainText);
+            plainText &&
+            /(?:^|\n)\s*(?:(?:[-*•▪◦·]|✅|✔|✓|❌|✖|✗|👉|⚠️|⚠)|\d+[.)])\s*/mu.test(plainText);
 
           // Prefer plain-text normalization for ChatGPT-style pasted lists.
           if (hasListLikePlainText) {
@@ -663,6 +683,7 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
 
     setActiveImageSrc('');
     setActiveImagePos(null);
+    setIsInlineEditorPinned(false);
   }
 
   function updateImageAttrs(attrs) {
@@ -960,35 +981,107 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     setActiveImageSrc(lastImageSrc);
   }
 
-  if (!editor) return null;
-  const selectedImageAttrs = getSelectedImageAttrs();
-  const imageList = getImageList();
+  function syncInlineImageEditorPosition() {
+    if (!editor || activeImagePos == null || !editorAreaRef.current) {
+      setInlineImageEditorPos(null);
+      return;
+    }
+
+    const imageNode = editor.view.nodeDOM(activeImagePos);
+    if (!(imageNode instanceof HTMLImageElement)) {
+      setInlineImageEditorPos(null);
+      return;
+    }
+
+    const wrapperRect = editorAreaRef.current.getBoundingClientRect();
+    const imageRect = imageNode.getBoundingClientRect();
+    const top = imageRect.bottom - wrapperRect.top + 8;
+    const left = Math.max(0, imageRect.left - wrapperRect.left);
+    const width = Math.max(280, Math.min(imageRect.width, wrapperRect.width));
+
+    setInlineImageEditorPos({ top, left, width });
+  }
+
+  useEffect(() => {
+    syncInlineImageEditorPosition();
+
+    if (activeImagePos == null) return undefined;
+
+    const handleReposition = () => syncInlineImageEditorPosition();
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [editor, activeImagePos]);
+
+  const selectedImageAttrs = editor ? getSelectedImageAttrs() : null;
+  const imageList = editor ? getImageList() : [];
   const selectedImageIndex = imageList.findIndex((item) => item.pos === activeImagePos);
-  const currentTextColor = editor.getAttributes('textStyle').color || '';
-  const words = editor.storage.characterCount?.words?.() || 0;
-  const characters = editor.storage.characterCount?.characters?.() || 0;
+  const currentTextColor = editor?.getAttributes('textStyle')?.color || '';
+  const words = editor?.storage.characterCount?.words?.() || 0;
+  const characters = editor?.storage.characterCount?.characters?.() || 0;
   const wrapperClass = isFullscreen
     ? 'fixed inset-0 z-[130] overflow-auto bg-stone-50 p-3 dark:bg-neutral-950'
     : '';
+
+  useEffect(() => {
+    if (!selectedImageAttrs && isInlineEditorPinned) {
+      setIsInlineEditorPinned(false);
+    }
+  }, [selectedImageAttrs, isInlineEditorPinned]);
+
+  useEffect(() => {
+    if (!editor) return undefined;
+
+    function onKeyDown(event) {
+      if (!editor.isFocused) return;
+
+      const key = event.key.toLowerCase();
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod) return;
+
+      if (key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        editor.chain().focus().undo().run();
+      } else if (key === 'y' || (key === 'z' && event.shiftKey)) {
+        event.preventDefault();
+        editor.chain().focus().redo().run();
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [editor]);
+
+  if (!editor) return null;
 
   return (
     <div className={wrapperClass}>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 border-b border-stone-200 bg-stone-50 p-2 dark:border-neutral-700 dark:bg-neutral-800">
         {TOOLBAR_BUTTONS.map((btn) => (
+          (() => {
+            const disabled = typeof btn.can === 'function' ? !btn.can(editor) : false;
+            return (
           <button
             key={btn.label}
             type="button"
             title={btn.title}
-            onClick={() => btn.action(editor)}
+            disabled={disabled}
+            onClick={() => !disabled && btn.action(editor)}
             className={`rounded border px-2 py-1 text-xs font-bold transition-all ${
               btn.active(editor)
                 ? 'border-accent bg-accent text-white'
-                : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400'
             }`}
           >
             {btn.label}
           </button>
+            );
+          })()
         ))}
         <button
           type="button"
@@ -1440,13 +1533,134 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
       </div>
 
       {/* Editor */}
-      <div className={isFocusMode ? 'mx-auto max-w-3xl' : ''}>
+      <div ref={editorAreaRef} className={`relative ${isFocusMode ? 'mx-auto max-w-3xl' : ''}`}>
         <EditorContent editor={editor} />
+
+        {selectedImageAttrs && inlineImageEditorPos && (
+          <div
+            className="absolute z-20 rounded-md border border-stone-200 bg-white/95 p-2 shadow-sm backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95"
+            style={{
+              top: `${inlineImageEditorPos.top}px`,
+              left: `${inlineImageEditorPos.left}px`,
+              width: `${inlineImageEditorPos.width}px`,
+            }}
+          >
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[10px] font-semibold tracking-wide text-stone-600 dark:text-neutral-300">
+                Image Quick Editor
+              </span>
+              <button
+                type="button"
+                onClick={clearImageSelection}
+                className="rounded border border-stone-200 bg-white px-2 py-0.5 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={() => updateImageAttrs({ align: 'left', size: 'half' })}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Left
+              </button>
+              <button
+                type="button"
+                onClick={() => updateImageAttrs({ align: 'center' })}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Center
+              </button>
+              <button
+                type="button"
+                onClick={() => updateImageAttrs({ align: 'right', size: 'half' })}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Right
+              </button>
+              <button
+                type="button"
+                onClick={() => updateImageAttrs({ size: 'half' })}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                50%
+              </button>
+              <button
+                type="button"
+                onClick={() => updateImageAttrs({ size: 'full' })}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                100%
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  updateImageAttrs({
+                    crop: 'landscape',
+                    clipTop: 0,
+                    clipRight: 0,
+                    clipBottom: 0,
+                    clipLeft: 0,
+                  })
+                }
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                16:9
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  updateImageAttrs({
+                    crop: 'square',
+                    clipTop: 0,
+                    clipRight: 0,
+                    clipBottom: 0,
+                    clipLeft: 0,
+                  })
+                }
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                1:1
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  updateImageAttrs({
+                    crop: 'none',
+                    clipTop: 0,
+                    clipRight: 0,
+                    clipBottom: 0,
+                    clipLeft: 0,
+                  })
+                }
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                NoCrop
+              </button>
+              <button
+                type="button"
+                onClick={openMouseCrop}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Mouse Crop
+              </button>
+              <button
+                type="button"
+                onClick={setImageAltText}
+                className="rounded border border-stone-200 bg-white px-2 py-1 text-[10px] font-bold text-stone-600 transition-all hover:border-accent hover:bg-accent hover:text-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                Alt Text
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between border-t border-stone-200 bg-white px-3 py-2 text-xs text-stone-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400">
         <span>Words: {words}</span>
         <span>Characters: {characters}</span>
+        <span className="hidden sm:inline">Shortcuts: Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo</span>
       </div>
 
       {mouseCropOpen && (

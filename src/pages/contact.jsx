@@ -37,8 +37,8 @@ export default function ContactPage() {
           <div className="mb-8 rounded-2xl bg-gradient-to-br from-navy to-accent p-8 text-white">
             <h1 className="font-head text-3xl font-black md:text-4xl">Contact Us</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/80 md:text-base">
-              We usually respond within 1 to 2 business days. For fastest support, send your message to the
-              relevant email below.
+              We usually respond within 1 to 2 business days. For fastest support, send your message
+              to the relevant email below.
             </p>
           </div>
 
@@ -54,7 +54,9 @@ export default function ContactPage() {
                 <h2 className="font-head text-lg font-bold text-stone-900 dark:text-neutral-100">
                   {channel.title}
                 </h2>
-                <p className="mt-2 text-sm text-stone-500 dark:text-neutral-500">{channel.description}</p>
+                <p className="mt-2 text-sm text-stone-500 dark:text-neutral-500">
+                  {channel.description}
+                </p>
                 <a
                   href={`mailto:${channel.email}`}
                   className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
@@ -67,43 +69,25 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-8 rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">Send a Message</h2>
+            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
+              Send a Message
+            </h2>
             <p className="mt-2 text-sm text-stone-500 dark:text-neutral-500">
-              This form is for convenience. For urgent issues, email us directly.
+              For the fastest response, email us directly. Please include your name, topic, and a
+              brief message.
             </p>
 
-            <form className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
-                  Full Name
-                </label>
-                <input className="form-input" type="text" name="name" placeholder="Your name" />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
-                  Email Address
-                </label>
-                <input className="form-input" type="email" name="email" placeholder="you@example.com" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
-                  Subject
-                </label>
-                <input className="form-input" type="text" name="subject" placeholder="How can we help?" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
-                  Message
-                </label>
-                <textarea className="form-input min-h-[140px]" name="message" placeholder="Write your message here..." />
-              </div>
-              <div className="md:col-span-2 flex items-center justify-between gap-3">
-                <p className="text-xs text-stone-400 dark:text-neutral-600">
-                  By submitting, you agree to our Privacy Policy and Terms & Conditions.
-                </p>
-                <button type="submit" className="btn-primary">Send Message</button>
-              </div>
-            </form>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a href="mailto:editor@ceylonupdates.com" className="btn-primary inline-flex">
+                Email Editorial
+              </a>
+              <a
+                href="mailto:support@ceylonupdates.com"
+                className="inline-flex rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Email Support
+              </a>
+            </div>
           </div>
         </div>
       </Layout>

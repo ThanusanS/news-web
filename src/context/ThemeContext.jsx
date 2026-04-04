@@ -6,16 +6,10 @@ export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    const isDark = saved ? saved === 'dark' : false;
-
-    // Persist an explicit default so the theme remains stable across reloads/devices.
-    if (!saved) {
-      localStorage.setItem('theme', 'light');
-    }
-
-    setDark(isDark);
-    document.documentElement.classList.toggle('dark', isDark);
+    // Always start in light mode by default.
+    setDark(false);
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
   }, []);
 
   function toggle() {

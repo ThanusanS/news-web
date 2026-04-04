@@ -9,6 +9,7 @@ export default function Newsletter({ compact = false }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (loading) return;
     if (!email) return;
     setLoading(true);
     try {
@@ -85,7 +86,9 @@ export default function Newsletter({ compact = false }) {
           {loading ? 'Joining...' : 'Subscribe Free'}
         </button>
       </form>
-      <p className="mt-3 text-xs text-stone-500 dark:text-neutral-400">No spam. Unsubscribe anytime.</p>
+      <p className="mt-3 text-xs text-stone-500 dark:text-neutral-400">
+        No spam. Unsubscribe anytime.
+      </p>
     </div>
   );
 }

@@ -2,8 +2,22 @@ import { z } from 'zod';
 
 export const articleSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters').max(300, 'Title too long'),
-  slug: z.string().min(3).max(200).regex(/^[a-z0-9-]+$/, 'Slug: only lowercase letters, numbers, hyphens'),
-  category: z.enum(['sri-lanka', 'tech-news', 'sports', 'ai-tutorials', 'jobs-careers', 'education', 'programming', 'world', 'business']),
+  slug: z
+    .string()
+    .min(3)
+    .max(200)
+    .regex(/^[a-z0-9-]+$/, 'Slug: only lowercase letters, numbers, hyphens'),
+  category: z.enum([
+    'sri-lanka',
+    'tech-news',
+    'sports',
+    'ai-tutorials',
+    'jobs-careers',
+    'education',
+    'programming',
+    'world',
+    'business',
+  ]),
   author: z.string().min(2, 'Author name required').max(100),
   content: z.string().min(100, 'Content too short — aim for at least 800 words'),
   excerpt: z.string().max(300).optional(),
@@ -24,6 +38,7 @@ export const articleSchema = z.object({
 
 export const commentSchema = z.object({
   articleId: z.string().min(1),
+  parentId: z.string().min(1).optional().or(z.literal('')),
   name: z.string().min(2, 'Name is required').max(100),
   email: z.string().email('Valid email required').optional().or(z.literal('')),
   content: z.string().min(2, 'Comment too short').max(1000, 'Comment too long'),

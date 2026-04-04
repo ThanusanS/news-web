@@ -130,10 +130,13 @@ export default function ArticlePage({ article, relatedArticles }) {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentNotice, setCommentNotice] = useState('');
+  const [commentsExpanded, setCommentsExpanded] = useState(false);
   const [commentForm, setCommentForm] = useState({
     name: '',
     content: '',
   });
+
+  const visibleComments = commentsExpanded ? comments : comments.slice(0, 5);
 
   const readTime = estimateReadTime(article?.content || '');
   const renderedContent = normalizeEditorTableHtml(
@@ -151,6 +154,7 @@ export default function ArticlePage({ article, relatedArticles }) {
       setComments([]);
     } finally {
       setCommentsLoading(false);
+      setCommentsExpanded(false);
     }
   }
 
@@ -339,7 +343,9 @@ export default function ArticlePage({ article, relatedArticles }) {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3 text-xs text-stone-400 dark:text-neutral-600">
-              <span className="inline-flex items-center gap-1.5"><FiClock size={13} /> {readTime} min read</span>
+              <span className="inline-flex items-center gap-1.5">
+                <FiClock size={13} /> {readTime} min read
+              </span>
             </div>
 
             {/* Share buttons */}
@@ -409,9 +415,9 @@ export default function ArticlePage({ article, relatedArticles }) {
               </p>
               <div className="flex flex-wrap gap-2">
                 {article.tags.map((tag) => (
-                  <Link key={tag} href={`/tag/${tag}`} className="tag-pill">
+                  <span key={tag} className="tag-pill">
                     #{tag}
-                  </Link>
+                  </span>
                 ))}
               </div>
             </div>
@@ -419,7 +425,7 @@ export default function ArticlePage({ article, relatedArticles }) {
 
           {/* Share bottom */}
           <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-5 text-center dark:border-neutral-800 dark:bg-neutral-900">
-            <p className="mb-3 text-sm font-semibold text-stone-700 dark:text-neutral-300 inline-flex items-center gap-2">
+            <p className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-neutral-300">
               <FiShare2 size={14} /> Found this useful? Share it
             </p>
             <div className="flex justify-center gap-3">
@@ -429,7 +435,8 @@ export default function ArticlePage({ article, relatedArticles }) {
                 rel="noopener noreferrer"
                 className="social-chip social-chip-facebook social-chip-lg"
               >
-                <SocialIcon platform="facebook" className="h-4 w-4 md:h-[18px] md:w-[18px]" /> Facebook
+                <SocialIcon platform="facebook" className="h-4 w-4 md:h-[18px] md:w-[18px]" />{' '}
+                Facebook
               </a>
               <a
                 href={xShareHref}
@@ -445,7 +452,8 @@ export default function ArticlePage({ article, relatedArticles }) {
                 rel="noopener noreferrer"
                 className="social-chip social-chip-whatsapp social-chip-lg"
               >
-                <SocialIcon platform="whatsapp" className="h-4 w-4 md:h-[18px] md:w-[18px]" /> WhatsApp
+                <SocialIcon platform="whatsapp" className="h-4 w-4 md:h-[18px] md:w-[18px]" />{' '}
+                WhatsApp
               </a>
             </div>
           </div>
@@ -453,7 +461,7 @@ export default function ArticlePage({ article, relatedArticles }) {
           {/* Comments */}
           <section className="mt-8 rounded-xl border border-stone-200 p-5 dark:border-neutral-800">
             <h2 className="mb-4 text-lg font-bold text-stone-900 dark:text-neutral-100">
-              Comments
+              Comments {comments.length > 0 ? `(${comments.length})` : ''}
             </h2>
 
             <form onSubmit={submitComment} className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -487,25 +495,61 @@ export default function ArticlePage({ article, relatedArticles }) {
             {commentsLoading ? (
               <p className="text-sm text-stone-500 dark:text-neutral-500">Loading comments...</p>
             ) : comments.length === 0 ? null : (
-              <div className="space-y-4">
-                {comments.map((c) => (
-                  <div
-                    key={c.$id}
-                    className="rounded-lg border border-stone-200 p-3 dark:border-neutral-800"
-                  >
-                    <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
-                        {c.name}
-                      </span>
-                      <span className="text-xs text-stone-500 dark:text-neutral-500">
-                        {c.createdAt
-                          ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
-                          : ''}
-                      </span>
+              <div className="space-y-5 border-t border-stone-200 pt-5 dark:border-neutral-800">
+                {visibleComments.map((c) => (
+                  <div key={c.$id} className="group flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-sm font-bold text-white">
+                      {String(c.name || c.commenterName || 'A')
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase() || 'A'}
                     </div>
-                    <p className="text-sm text-stone-700 dark:text-neutral-300">{c.content}</p>
+                    <div className="min-w-0 flex-1 border-b border-stone-100 pb-4 dark:border-neutral-800">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
+                          {c.name || c.commenterName || 'Anonymous'}
+                        </span>
+                        <span className="text-xs text-stone-500 dark:text-neutral-500">
+                          {c.createdAt
+                            ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
+                            : ''}
+                        </span>
+                      </div>
+                      <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-stone-800 dark:text-neutral-200">
+                        {c.content ||
+                          c.comment ||
+                          c.commentText ||
+                          c.message ||
+                          c.body ||
+                          'Comment submitted.'}
+                      </p>
+                    </div>
                   </div>
                 ))}
+
+                {comments.length > 5 && !commentsExpanded && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setCommentsExpanded(true)}
+                      className="btn-secondary text-sm"
+                    >
+                      Read more comments ({comments.length - 5} more)
+                    </button>
+                  </div>
+                )}
+
+                {comments.length > 5 && commentsExpanded && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setCommentsExpanded(false)}
+                      className="btn-secondary text-sm"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </section>

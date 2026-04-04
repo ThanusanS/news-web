@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { FiEye, FiFileText } from 'react-icons/fi';
+import { FiFileText } from 'react-icons/fi';
 import { estimateReadTime } from '../lib/seo';
 
 const CATEGORY_COLORS = {
@@ -19,7 +19,6 @@ const CATEGORY_COLORS = {
 export default function ArticleCard({ article, variant = 'default' }) {
   const readTime = estimateReadTime(article.content);
   const [timeAgo, setTimeAgo] = useState('');
-  const viewsLabel = Number(article.views || 0).toLocaleString('en-US');
 
   useEffect(() => {
     if (!article.publishedAt) return;
@@ -98,12 +97,6 @@ export default function ArticleCard({ article, variant = 'default' }) {
           </div>
           <div className="flex items-center gap-2">
             <span>{readTime} min</span>
-            {article.views > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <FiEye className="inline-block" size={12} />
-                {viewsLabel}
-              </span>
-            )}
           </div>
         </div>
       </div>

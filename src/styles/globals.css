@@ -9,7 +9,8 @@
 
   body {
     @apply bg-stone-50 font-body text-stone-900 antialiased transition-colors duration-300;
-    background-image: radial-gradient(circle at 10% -10%, rgba(181, 18, 43, 0.08), transparent 40%),
+    background-image:
+      radial-gradient(circle at 10% -10%, rgba(181, 18, 43, 0.08), transparent 40%),
       radial-gradient(circle at 92% -22%, rgba(20, 50, 77, 0.09), transparent 45%);
   }
 
@@ -105,7 +106,7 @@
     @apply leading-relaxed;
   }
   .article-prose li > p {
-    @apply inline m-0;
+    @apply m-0 inline;
   }
   .article-prose a {
     @apply text-blue-600 underline decoration-blue-600/70 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:decoration-blue-400/70 dark:hover:text-blue-300;
@@ -211,14 +212,21 @@
   /* ── Premium Social Buttons ── */
   .social-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold text-white;
-    box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-    transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+    box-shadow:
+      0 8px 18px -12px rgba(0, 0, 0, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transition:
+      transform 140ms ease,
+      filter 140ms ease,
+      box-shadow 140ms ease;
   }
 
   .social-chip:hover {
     transform: translateY(-1px);
     filter: saturate(1.05);
-    box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 12px 20px -12px rgba(0, 0, 0, 0.75),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   .social-chip-lg {
@@ -242,8 +250,12 @@
 
   .social-orb {
     @apply flex h-8 w-8 items-center justify-center rounded-full border text-white;
-    box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-    transition: transform 140ms ease, filter 140ms ease;
+    box-shadow:
+      0 8px 18px -12px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition:
+      transform 140ms ease,
+      filter 140ms ease;
   }
 
   .social-orb:hover {
@@ -315,7 +327,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #B5122B;
+  outline: 2px solid #b5122b;
   outline-offset: 2px;
 }
 
@@ -332,7 +344,7 @@ select:focus-visible {
   right: 0;
   height: 3px;
   z-index: 9999;
-  background: linear-gradient(90deg, #B5122B 0%, #F97316 45%, #B5122B 100%);
+  background: linear-gradient(90deg, #b5122b 0%, #f97316 45%, #b5122b 100%);
   background-size: 180% 100%;
   animation: route-progress-move 1s linear infinite;
   box-shadow: 0 1px 6px rgba(181, 18, 43, 0.35);

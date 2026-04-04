@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { FiSun, FiMoon, FiSearch, FiMenu, FiX } from 'react-icons/fi';
 
 const CATEGORIES = [
@@ -17,6 +18,7 @@ const CATEGORIES = [
 
 export default function Navbar() {
   const { dark, toggle } = useTheme();
+  const { user } = useAuth();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -29,22 +31,21 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b border-stone-200 dark:border-neutral-800 transition-all
-        ${scrolled ? 'bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md shadow-sm' : 'bg-white dark:bg-neutral-950'}`}
+      className={`sticky top-0 z-50 border-b border-stone-200 transition-all dark:border-neutral-800 ${scrolled ? 'bg-white/95 shadow-sm backdrop-blur-md dark:bg-neutral-950/95' : 'bg-white dark:bg-neutral-950'}`}
     >
-      <div className="max-w-7xl mx-auto px-4 flex items-center h-12 md:h-14 gap-2.5">
+      <div className="mx-auto flex h-12 max-w-7xl items-center gap-2.5 px-4 md:h-14">
         {/* Logo */}
-        <Link href="/" className="font-head text-xl md:text-2xl font-black text-accent shrink-0">
+        <Link href="/" className="shrink-0 font-head text-xl font-black text-accent md:text-2xl">
           Ceylon<span className="text-stone-900 dark:text-neutral-100">Updates</span>
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-0 flex-1 overflow-hidden">
+        <div className="hidden flex-1 items-center gap-0 overflow-hidden md:flex">
           {CATEGORIES.map((c) => (
             <Link
               key={c.href}
               href={c.href}
-              className={`nav-link ${router.pathname === c.href || router.asPath.startsWith(c.href) && c.href !== '/' ? 'active' : ''}`}
+              className={`nav-link ${router.pathname === c.href || (router.asPath.startsWith(c.href) && c.href !== '/') ? 'active' : ''}`}
             >
               {c.label}
             </Link>
@@ -52,22 +53,30 @@ export default function Navbar() {
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2 ml-auto">
-          <Link href="/search" className="w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800 text-stone-700 dark:text-neutral-300 hover:text-accent transition-colors">
+        <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/search"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 transition-colors hover:text-accent dark:bg-neutral-800 dark:text-neutral-300"
+          >
             <FiSearch size={16} />
           </Link>
           <button
             onClick={toggle}
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800 text-stone-700 dark:text-neutral-300 hover:text-accent transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 transition-colors hover:text-accent dark:bg-neutral-800 dark:text-neutral-300"
             aria-label="Toggle theme"
           >
             {dark ? <FiSun size={16} /> : <FiMoon size={16} />}
           </button>
-          <Link href="/admin" className="hidden sm:block px-3 py-1.5 bg-accent text-white rounded text-xs font-bold tracking-wide hover:opacity-90 transition-opacity">
-            Admin
-          </Link>
+          {user && (
+            <Link
+              href="/admin"
+              className="hidden rounded bg-accent px-3 py-1.5 text-xs font-bold tracking-wide text-white transition-opacity hover:opacity-90 sm:block"
+            >
+              Admin
+            </Link>
+          )}
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white dark:bg-neutral-800 md:hidden"
             onClick={() => setMobileOpen((o) => !o)}
           >
             {mobileOpen ? <FiX size={18} /> : <FiMenu size={18} />}
@@ -77,20 +86,26 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white dark:bg-neutral-950 border-t border-stone-200 dark:border-neutral-800 px-4 py-3 flex flex-col gap-1">
+        <div className="flex flex-col gap-1 border-t border-stone-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950 md:hidden">
           {CATEGORIES.map((c) => (
             <Link
               key={c.href}
               href={c.href}
-              className="py-2 px-3 text-sm font-medium text-stone-700 dark:text-neutral-300 hover:text-accent rounded hover:bg-stone-50 dark:hover:bg-neutral-900 transition-colors"
+              className="rounded px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50 hover:text-accent dark:text-neutral-300 dark:hover:bg-neutral-900"
               onClick={() => setMobileOpen(false)}
             >
               {c.label}
             </Link>
           ))}
-          <Link href="/admin" className="mt-2 text-center py-2 bg-accent text-white rounded text-xs font-bold" onClick={() => setMobileOpen(false)}>
-            ADMIN PANEL
-          </Link>
+          {user && (
+            <Link
+              href="/admin"
+              className="mt-2 rounded bg-accent py-2 text-center text-xs font-bold text-white"
+              onClick={() => setMobileOpen(false)}
+            >
+              ADMIN PANEL
+            </Link>
+          )}
         </div>
       )}
     </nav>

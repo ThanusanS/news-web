@@ -38,7 +38,7 @@ const CATEGORIES = [
 export default function NewPostPage() {
   const router = useRouter();
   const AUTOSAVE_KEY = 'ceylonupdates.newpost.autosave.v1';
-  const REVISIONS_KEY = `${AUTOSAVE_KEY}.revisions`;
+  const AUTOSAVE_PREF_KEY = 'ceylonupdates.newpost.autosave.pref.v1';
   const [form, setForm] = useState({
     title: '',
     slug: '',
@@ -54,7 +54,6 @@ export default function NewPostPage() {
     ogDescription: '',
     canonicalUrl: '',
     focusKeyword: '',
-    tags: '',
     status: 'draft',
   });
   const [scheduledAt, setScheduledAt] = useState('');
@@ -63,7 +62,9 @@ export default function NewPostPage() {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showNewsMediaPicker, setShowNewsMediaPicker] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [revisions, setRevisions] = useState([]);
+  const [autosaveEnabled, setAutosaveEnabled] = useState(true);
+  const [autosaveIntervalMs, setAutosaveIntervalMs] = useState(1000);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -79,70 +80,91 @@ export default function NewPostPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(AUTOSAVE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed?.form) {
-        setForm((prev) => ({ ...prev, ...parsed.form }));
-      }
-      if (parsed?.scheduledAt) {
-        setScheduledAt(parsed.scheduledAt);
-      }
-
-      const revRaw = localStorage.getItem(REVISIONS_KEY);
-      if (revRaw) {
-        const parsedRevs = JSON.parse(revRaw);
-        if (Array.isArray(parsedRevs)) {
-          setRevisions(parsedRevs);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.form) {
+          setForm((prev) => ({ ...prev, ...parsed.form }));
+        }
+        if (parsed?.scheduledAt) {
+          setScheduledAt(parsed.scheduledAt);
+        }
+        if (parsed?.ts) {
+          setLastSavedAt(parsed.ts);
         }
       }
+
+      const prefRaw = localStorage.getItem(AUTOSAVE_PREF_KEY);
+      if (prefRaw) {
+        const prefs = JSON.parse(prefRaw);
+        if (typeof prefs?.enabled === 'boolean') {
+          setAutosaveEnabled(prefs.enabled);
+        }
+        if ([1000, 3000, 5000, 10000].includes(Number(prefs?.intervalMs))) {
+          setAutosaveIntervalMs(Number(prefs.intervalMs));
+        }
+      }
+
     } catch {}
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ form, scheduledAt, ts: Date.now() }));
-      } catch {}
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [form, scheduledAt]);
-
-  useEffect(() => {
+  function saveDraftSnapshot(showToast = false) {
     try {
-      localStorage.setItem(REVISIONS_KEY, JSON.stringify(revisions));
-    } catch {}
-  }, [revisions]);
-
-  useEffect(() => {
-    if (!form.title && !form.content) return;
-    const interval = setInterval(() => {
-      createRevision('Auto');
-    }, 120000);
-    return () => clearInterval(interval);
-  }, [form.title, form.content, scheduledAt]);
-
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  function createRevision(label = 'Manual') {
-    if (!form.title && !form.content) return;
-    const snapshot = {
-      id: Date.now(),
-      label,
-      savedAt: new Date().toISOString(),
-      form,
-      scheduledAt,
-    };
-    setRevisions((prev) => [snapshot, ...prev].slice(0, 8));
-    if (label === 'Manual') {
-      toast.success('Revision snapshot saved.');
+      const now = Date.now();
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ form, scheduledAt, ts: now }));
+      setLastSavedAt(now);
+      if (showToast) {
+        toast.success('Draft saved locally.');
+      }
+    } catch {
+      if (showToast) {
+        toast.error('Could not save local draft.');
+      }
     }
   }
 
-  function restoreRevision(snapshot) {
-    if (!snapshot?.form) return;
-    setForm(snapshot.form);
-    setScheduledAt(snapshot.scheduledAt || '');
-    toast.success('Revision restored.');
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        AUTOSAVE_PREF_KEY,
+        JSON.stringify({ enabled: autosaveEnabled, intervalMs: autosaveIntervalMs })
+      );
+    } catch {}
+  }, [autosaveEnabled, autosaveIntervalMs]);
+
+  useEffect(() => {
+    if (!autosaveEnabled) return undefined;
+    const timer = setTimeout(() => {
+      saveDraftSnapshot(false);
+    }, autosaveIntervalMs);
+    return () => clearTimeout(timer);
+  }, [form, scheduledAt, autosaveEnabled, autosaveIntervalMs]);
+
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  function openPreview() {
+    try {
+      const nonce =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const key = `ceylonupdates.preview.${nonce}`;
+      const payload = {
+        title: form.title,
+        slug: form.slug,
+        author: form.author,
+        category: form.category,
+        excerpt: form.excerpt,
+        content: form.content,
+        featuredImage: form.featuredImage,
+        newsImage: form.newsImage,
+        updatedAt: new Date().toISOString(),
+      };
+      sessionStorage.setItem(key, JSON.stringify(payload));
+      localStorage.setItem(key, JSON.stringify(payload));
+      window.open(`/admin/preview?key=${encodeURIComponent(key)}`, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Preview unavailable in this browser tab.');
+    }
   }
 
   function formatUploadError(err) {
@@ -275,11 +297,6 @@ export default function NewPostPage() {
         return;
       }
 
-      const tagsArray = form.tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean);
-
       const scheduleIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
       const nowIso = new Date().toISOString();
       const isFutureSchedule = Boolean(scheduleIso && scheduleIso > nowIso);
@@ -304,7 +321,6 @@ export default function NewPostPage() {
 
       const created = await createArticle({
         ...form,
-        tags: tagsArray,
         status: nextStatus,
         views: 0,
         publishedAt,
@@ -328,7 +344,7 @@ export default function NewPostPage() {
 
       toast.success(successMessage);
       localStorage.removeItem(AUTOSAVE_KEY);
-      localStorage.removeItem(REVISIONS_KEY);
+      setLastSavedAt(null);
       router.push('/admin/posts');
     } catch (err) {
       toast.error('Failed to save: ' + err.message);
@@ -336,20 +352,49 @@ export default function NewPostPage() {
     setSaving(false);
   }
 
-  const imageTags = String(form.content || '').match(/<img\b[^>]*>/gi) || [];
+  const contentHtml = String(form.content || '');
+  const normalizedContent = contentHtml.toLowerCase();
+  const contentText = contentHtml
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const normalizedContentText = contentText.toLowerCase();
+  const normalizedKeyword = String(form.focusKeyword || '')
+    .trim()
+    .toLowerCase();
+  const seoTitle = String(form.metaTitle || form.title || '').trim();
+  const seoDescription = String(form.metaDescription || form.excerpt || '').trim();
+  const imageTags = contentHtml.match(/<img\b[^>]*>/gi) || [];
   const imageAltCount = imageTags.filter((tag) => /\salt="[^\"]*\S[^\"]*"/i.test(tag)).length;
   const seoChecks = [
-    { label: 'Title length between 30-60', pass: form.title.length >= 30 && form.title.length <= 60 },
-    { label: 'Meta description 120-155 chars', pass: form.metaDescription.length >= 120 && form.metaDescription.length <= 155 },
-    { label: 'Focus keyword appears in title', pass: !!form.focusKeyword && form.title.toLowerCase().includes(form.focusKeyword.toLowerCase()) },
-    { label: 'Focus keyword appears early in content', pass: !!form.focusKeyword && String(form.content || '').toLowerCase().slice(0, 800).includes(form.focusKeyword.toLowerCase()) },
+    {
+      label: 'SEO title length between 30-60',
+      pass: seoTitle.length >= 30 && seoTitle.length <= 60,
+    },
+    {
+      label: 'Meta description 120-155 chars',
+      pass: seoDescription.length >= 120 && seoDescription.length <= 155,
+    },
+    {
+      label: 'Focus keyword appears in SEO title',
+      pass: !!normalizedKeyword && seoTitle.toLowerCase().includes(normalizedKeyword),
+    },
+    {
+      label: 'Focus keyword appears early in content',
+      pass: !!normalizedKeyword && normalizedContentText.slice(0, 800).includes(normalizedKeyword),
+    },
     { label: 'Has featured image', pass: !!form.featuredImage },
-    { label: 'Images include alt text', pass: imageTags.length === 0 || imageAltCount === imageTags.length },
-    { label: 'Has internal link', pass: /href="\//i.test(String(form.content || '')) },
-    { label: 'Has external link', pass: /href="https?:\/\//i.test(String(form.content || '')) },
+    {
+      label: 'Images include alt text',
+      pass: imageTags.length === 0 || imageAltCount === imageTags.length,
+    },
+    { label: 'Has internal link', pass: /href\s*=\s*["']\/(?!\/)/i.test(contentHtml) },
+    { label: 'Has external link', pass: /href\s*=\s*["']https?:\/\//i.test(contentHtml) },
   ];
-  const seoScore = Math.round((seoChecks.filter((item) => item.pass).length / seoChecks.length) * 100);
-  const textContent = String(form.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const seoScore = Math.round(
+    (seoChecks.filter((item) => item.pass).length / seoChecks.length) * 100
+  );
+  const textContent = contentText;
   const wordCount = textContent ? textContent.split(' ').length : 0;
   const charCount = textContent.length;
 
@@ -418,6 +463,57 @@ export default function NewPostPage() {
             <div className="mb-3 rounded bg-stone-50 px-3 py-2 text-xs text-stone-600 dark:bg-neutral-800 dark:text-neutral-300">
               {wordCount} words · {charCount} characters
             </div>
+            <div className="mb-3 rounded border border-stone-200 bg-stone-50 px-3 py-2 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="font-semibold text-stone-700 dark:text-neutral-200">Autosave</span>
+                <label className="inline-flex items-center gap-2 text-stone-600 dark:text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={autosaveEnabled}
+                    onChange={(e) => setAutosaveEnabled(e.target.checked)}
+                  />
+                  {autosaveEnabled ? 'On' : 'Off'}
+                </label>
+              </div>
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-stone-500 dark:text-neutral-400">Every</span>
+                <select
+                  value={autosaveIntervalMs}
+                  onChange={(e) => setAutosaveIntervalMs(Number(e.target.value))}
+                  disabled={!autosaveEnabled}
+                  className="rounded border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                >
+                  <option value={1000}>1s</option>
+                  <option value={3000}>3s</option>
+                  <option value={5000}>5s</option>
+                  <option value={10000}>10s</option>
+                </select>
+              </div>
+              <p className="mb-2 text-stone-500 dark:text-neutral-400">
+                Last local save:{' '}
+                {lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString() : 'Not saved yet'}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => saveDraftSnapshot(true)}
+                  className="flex-1 rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+                >
+                  Save Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem(AUTOSAVE_KEY);
+                    setLastSavedAt(null);
+                    toast.success('Local draft cleared.');
+                  }}
+                  className="flex-1 rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+                >
+                  Clear Local Draft
+                </button>
+              </div>
+            </div>
             <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
               Schedule (optional)
             </label>
@@ -428,13 +524,6 @@ export default function NewPostPage() {
               className="form-input mb-3 text-xs"
             />
             <div className="space-y-2">
-              <button
-                onClick={() => createRevision('Manual')}
-                disabled={saving || (!form.title && !form.content)}
-                className="w-full rounded border border-stone-300 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
-              >
-                Save Revision Snapshot
-              </button>
               <button
                 onClick={() => handleSubmit('published')}
                 disabled={saving || !form.title || !form.content}
@@ -456,37 +545,16 @@ export default function NewPostPage() {
               >
                 Save Draft
               </button>
-              {form.slug && (
-                <a
-                  href={`/${form.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {(form.slug || form.title || form.content) && (
+                <button
+                  type="button"
+                  onClick={openPreview}
                   className="block w-full rounded border border-stone-300 py-2.5 text-center text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
                 >
-                  View Live
-                </a>
+                  Preview
+                </button>
               )}
             </div>
-          </div>
-
-          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-3 text-sm font-semibold">Revision History</h3>
-            {revisions.length === 0 ? (
-              <p className="text-xs text-stone-400 dark:text-neutral-500">No snapshots yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {revisions.map((rev) => (
-                  <button
-                    key={rev.id}
-                    type="button"
-                    onClick={() => restoreRevision(rev)}
-                    className="w-full rounded border border-stone-200 px-3 py-2 text-left text-xs text-stone-600 hover:border-accent hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                  >
-                    <span className="font-semibold">{rev.label}</span> · {new Date(rev.savedAt).toLocaleString()}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Category & Author */}
@@ -704,21 +772,6 @@ export default function NewPostPage() {
             )}
           </div>
 
-          {/* Tags */}
-          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
-              Tags
-            </label>
-            <input
-              type="text"
-              value={form.tags}
-              onChange={set('tags')}
-              placeholder="SriLanka, AI2026, ChatGPT"
-              className="form-input"
-            />
-            <p className="mt-1 text-xs text-stone-400 dark:text-neutral-600">Comma-separated</p>
-          </div>
-
           {/* SEO */}
           <div className="space-y-3 rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex items-center justify-between">
@@ -816,7 +869,10 @@ export default function NewPostPage() {
           <div className="space-y-2 rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="text-sm font-semibold">SEO Checklist</h3>
             {seoChecks.map((item) => (
-              <p key={item.label} className={`text-xs ${item.pass ? 'text-green-600' : 'text-stone-500 dark:text-neutral-400'}`}>
+              <p
+                key={item.label}
+                className={`text-xs ${item.pass ? 'text-green-600' : 'text-stone-500 dark:text-neutral-400'}`}
+              >
                 {item.pass ? 'PASS' : 'TODO'} {item.label}
               </p>
             ))}

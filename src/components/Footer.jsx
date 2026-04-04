@@ -67,15 +67,15 @@ export default function Footer() {
           <Newsletter />
         </div>
 
-        <div className="mb-10 grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="mb-10 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10 lg:gap-14">
           {/* Brand */}
-          <div className="md:col-span-1">
+          <div>
             <Link href="/" className="mb-3 block font-head text-2xl font-black text-accent">
               Ceylon<span className="text-stone-900 dark:text-neutral-100">Updates</span>
             </Link>
             <p className="mb-4 text-sm leading-relaxed text-stone-500 dark:text-neutral-500">
-              Sri Lanka's fastest-growing news and tech platform. Reliable news, AI tutorials and
-              programming guides for 100K+ monthly readers across South Asia.
+              Sri Lanka's fastest-growing news and tech platform. Reliable news, AI tutorials, and
+              programming guides for readers across South Asia.
             </p>
             <div className="flex gap-2">
               {[
@@ -114,7 +114,7 @@ export default function Footer() {
           </div>
 
           {/* Categories */}
-          <div>
+          <div className="md:justify-self-start">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-neutral-100">
               Categories
             </h3>
@@ -132,7 +132,7 @@ export default function Footer() {
           </div>
 
           {/* Quick links */}
-          <div>
+          <div className="md:justify-self-start">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-neutral-100">
               Quick Links
             </h3>
@@ -148,14 +148,13 @@ export default function Footer() {
               ))}
             </div>
           </div>
-
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-stone-200 pt-5 dark:border-neutral-800 sm:flex-row">
-          <p className="text-xs text-stone-400 dark:text-neutral-600">
+        <div className="grid grid-cols-1 gap-3 border-t border-stone-200 pt-5 dark:border-neutral-800 md:grid-cols-3 md:gap-10 lg:gap-14">
+          <p className="text-center text-xs text-stone-400 dark:text-neutral-600 md:col-span-2 md:text-left">
             © 2026 CeylonUpdates.com · All rights reserved · Built in Sri Lanka
           </p>
-          <div className="flex gap-4">
+          <div className="flex justify-center gap-4 md:justify-self-start">
             <Link href="/contact" className="text-xs text-stone-400 hover:text-accent">
               Contact
             </Link>

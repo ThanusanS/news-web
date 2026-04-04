@@ -1,4 +1,4 @@
-import { databases, DB_ID, ARTICLES_COL, Query } from '../../../lib/appwrite';
+import { databases, DB_ID, ARTICLES_COL, Query, updateArticle } from '../../../lib/appwrite';
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       delete data.$id;
       delete data.$createdAt;
       delete data.$updatedAt;
-      const updated = await databases.updateDocument(DB_ID, ARTICLES_COL, id, data);
+      const updated = await updateArticle(id, data);
       return res.status(200).json(updated);
     } catch (err) {
       return res.status(500).json({ error: 'Update failed', details: err.message });
