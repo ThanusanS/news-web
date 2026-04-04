@@ -8,7 +8,7 @@ export default function Custom404() {
       <NextSeo title="Page Not Found | CeylonUpdates.com" noindex />
       <Layout>
         <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-          <div className="text-8xl mb-6">🇱🇰</div>
+          <div className="text-8xl mb-6">404</div>
           <h1 className="font-head text-5xl font-black text-stone-900 dark:text-neutral-50 mb-4">
             404
           </h1>

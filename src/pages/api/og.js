@@ -69,7 +69,7 @@ export default function handler(req, res) {
   <!-- Right decoration -->
   <circle cx="1050" cy="200" r="180" fill="white" fill-opacity="0.04"/>
   <circle cx="1100" cy="450" r="120" fill="white" fill-opacity="0.04"/>
-  <text x="980" y="220" font-size="120" opacity="0.15">🇱🇰</text>
+  <text x="980" y="220" font-size="120" opacity="0.15">CU</text>
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml');

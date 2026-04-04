@@ -136,7 +136,21 @@ export default function ArticlePage({ article, relatedArticles }) {
     content: '',
   });
 
-  const visibleComments = commentsExpanded ? comments : comments.slice(0, 5);
+  function flattenThreadedComments(items = [], depth = 0) {
+    const out = [];
+    for (const item of items) {
+      if (!item) continue;
+      out.push({ ...item, __depth: depth });
+      if (Array.isArray(item.replies) && item.replies.length > 0) {
+        out.push(...flattenThreadedComments(item.replies, depth + 1));
+      }
+    }
+    return out;
+  }
+
+  const flatComments = flattenThreadedComments(comments);
+
+  const visibleComments = commentsExpanded ? flatComments : flatComments.slice(0, 5);
 
   const readTime = estimateReadTime(article?.content || '');
   const renderedContent = normalizeEditorTableHtml(
@@ -461,7 +475,7 @@ export default function ArticlePage({ article, relatedArticles }) {
           {/* Comments */}
           <section className="mt-8 rounded-xl border border-stone-200 p-5 dark:border-neutral-800">
             <h2 className="mb-4 text-lg font-bold text-stone-900 dark:text-neutral-100">
-              Comments {comments.length > 0 ? `(${comments.length})` : ''}
+              Comments {flatComments.length > 0 ? `(${flatComments.length})` : ''}
             </h2>
 
             <form onSubmit={submitComment} className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -494,21 +508,42 @@ export default function ArticlePage({ article, relatedArticles }) {
 
             {commentsLoading ? (
               <p className="text-sm text-stone-500 dark:text-neutral-500">Loading comments...</p>
-            ) : comments.length === 0 ? null : (
+            ) : flatComments.length === 0 ? (
+              <p className="text-sm text-stone-500 dark:text-neutral-500">
+                No comments yet. Be the first to comment.
+              </p>
+            ) : (
               <div className="space-y-5 border-t border-stone-200 pt-5 dark:border-neutral-800">
-                {visibleComments.map((c) => (
-                  <div key={c.$id} className="group flex items-start gap-3">
+                {visibleComments.map((c, idx) => (
+                  <div
+                    key={`${c.$id || `comment-${idx}`}-${c.__depth || 0}`}
+                    className={`group flex items-start gap-3 ${c.__depth ? 'ml-5 sm:ml-8' : ''}`}
+                  >
+                    {(() => {
+                      const displayName =
+                        c.name ||
+                        c.commenterName ||
+                        c.authorName ||
+                        (c.email ? String(c.email).split('@')[0] : '') ||
+                        'Anonymous';
+                      const avatarInitial =
+                        String(displayName).trim().charAt(0).toUpperCase() || 'A';
+
+                      return (
+                        <>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-sm font-bold text-white">
-                      {String(c.name || c.commenterName || 'A')
-                        .trim()
-                        .charAt(0)
-                        .toUpperCase() || 'A'}
+                      {avatarInitial}
                     </div>
                     <div className="min-w-0 flex-1 border-b border-stone-100 pb-4 dark:border-neutral-800">
                       <div className="mb-1 flex items-center gap-2">
                         <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
-                          {c.name || c.commenterName || 'Anonymous'}
+                          {displayName}
                         </span>
+                        {c.__depth > 0 && (
+                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
+                            Reply
+                          </span>
+                        )}
                         <span className="text-xs text-stone-500 dark:text-neutral-500">
                           {c.createdAt
                             ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
@@ -524,22 +559,25 @@ export default function ArticlePage({ article, relatedArticles }) {
                           'Comment submitted.'}
                       </p>
                     </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 ))}
 
-                {comments.length > 5 && !commentsExpanded && (
+                {flatComments.length > 5 && !commentsExpanded && (
                   <div className="pt-1">
                     <button
                       type="button"
                       onClick={() => setCommentsExpanded(true)}
                       className="btn-secondary text-sm"
                     >
-                      Read more comments ({comments.length - 5} more)
+                      Read more comments ({flatComments.length - 5} more)
                     </button>
                   </div>
                 )}
 
-                {comments.length > 5 && commentsExpanded && (
+                {flatComments.length > 5 && commentsExpanded && (
                   <div className="pt-1">
                     <button
                       type="button"

@@ -103,12 +103,20 @@ export default function MediaPage() {
 
       {/* Upload area */}
       <div
-        className="group mb-6 cursor-pointer rounded-xl border-2 border-dashed border-stone-300 p-8 text-center transition-colors hover:border-accent dark:border-neutral-700"
+        className="group mb-6 cursor-pointer rounded-xl border-2 border-dashed border-stone-300 p-5 text-center transition-colors hover:border-accent sm:p-8 dark:border-neutral-700"
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
           handleUpload({ target: { files: e.dataTransfer.files } });
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
         }}
       >
         <input
@@ -146,7 +154,7 @@ export default function MediaPage() {
         {/* Grid */}
         <div>
           {loading ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
@@ -162,7 +170,7 @@ export default function MediaPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {files.map((file) => (
                 <div
                   key={file.$id}
@@ -211,7 +219,7 @@ export default function MediaPage() {
         </div>
 
         {/* Selected file details */}
-        <div className="h-fit rounded-xl border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="h-fit rounded-xl border border-stone-200 bg-white p-4 lg:sticky lg:top-16 dark:border-neutral-800 dark:bg-neutral-900">
           {selected ? (
             <>
               <div className="mb-4 aspect-video overflow-hidden rounded-lg bg-stone-100 dark:bg-neutral-800">

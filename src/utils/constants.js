@@ -14,7 +14,7 @@ export const SITE_CONFIG = {
 };
 
 export const CATEGORIES = [
-  { slug: 'sri-lanka',    label: 'Sri Lanka News 🇱🇰',    iconKey: 'sri-lanka', description: 'Latest news from Sri Lanka — politics, economy, sports and culture.', color: 'red',    keywords: ['Sri Lanka news', 'Colombo', 'Ceylon'] },
+  { slug: 'sri-lanka',    label: 'Sri Lanka News',    iconKey: 'sri-lanka', description: 'Latest news from Sri Lanka — politics, economy, sports and culture.', color: 'red',    keywords: ['Sri Lanka news', 'Colombo', 'Ceylon'] },
   { slug: 'tech-news',   label: 'Tech News',    iconKey: 'tech-news', description: 'Global technology updates curated for South Asian readers.', color: 'blue',   keywords: ['technology news', 'gadgets', 'startups'] },
   { slug: 'sports',      label: 'Sports',       iconKey: 'sports', description: 'Sports highlights, cricket updates and match coverage.', color: 'emerald', keywords: ['sports news', 'cricket', 'football'] },
   { slug: 'ai-tutorials',label: 'AI & Innovation', iconKey: 'ai-tutorials', description: 'Learn ChatGPT, Claude, Gemini and the best AI tools.', color: 'indigo', keywords: ['ChatGPT', 'AI tools', 'machine learning'] },
@@ -36,7 +36,7 @@ export const AD_SLOTS = {
 
 export const NAV_LINKS = [
   { label: 'Home',          href: '/' },
-  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
+  { label: 'Sri Lanka News', href: '/category/sri-lanka' },
   { label: 'World News',    href: '/category/world' },
   { label: 'Sports',        href: '/category/sports' },
   { label: 'Tech News',     href: '/category/tech-news' },

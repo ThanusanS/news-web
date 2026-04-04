@@ -99,7 +99,7 @@ export default function CommentsPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${filter === f ? 'bg-accent text-white' : 'bg-white text-stone-600 hover:bg-stone-50 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800'}`}
+              className={`px-3 py-2 text-xs font-medium capitalize transition-colors sm:px-4 sm:text-sm ${filter === f ? 'bg-accent text-white' : 'bg-white text-stone-600 hover:bg-stone-50 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800'}`}
             >
               {f}
             </button>
@@ -144,7 +144,7 @@ export default function CommentsPage() {
                   key={c.$id}
                   className="rounded-xl border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col items-start gap-4 lg:flex-row lg:justify-between">
                     <div className="flex min-w-0 flex-1 items-start gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-sm font-bold text-white">
                         {(c.name || c.commenterName || 'A')?.[0]?.toUpperCase() || '?'}
@@ -201,11 +201,11 @@ export default function CommentsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
+                    <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-1 lg:w-auto">
                       {!c.approved && (
                         <button
                           onClick={() => approve(c.$id)}
-                          className="flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 transition-colors hover:bg-green-100 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400"
+                          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 transition-colors hover:bg-green-100 sm:flex-none dark:border-green-800 dark:bg-green-950/30 dark:text-green-400"
                         >
                           <FiCheck size={12} /> Approve
                         </button>
@@ -213,7 +213,7 @@ export default function CommentsPage() {
                       {c.approved && (
                         <button
                           onClick={() => hideComment(c.$id)}
-                          className="flex items-center gap-1 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1.5 text-xs font-semibold text-yellow-700 transition-colors hover:bg-yellow-100 dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300"
+                          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1.5 text-xs font-semibold text-yellow-700 transition-colors hover:bg-yellow-100 sm:flex-none dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300"
                         >
                           Hide
                         </button>
@@ -221,14 +221,14 @@ export default function CommentsPage() {
                       {!c.approved && (
                         <button
                           onClick={() => reject(c.$id)}
-                          className="flex items-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300"
+                          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-100 sm:flex-none dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300"
                         >
                           Reject
                         </button>
                       )}
                       <button
                         onClick={() => remove(c.$id)}
-                        className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400"
+                        className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 sm:flex-none dark:border-red-800 dark:bg-red-950/30 dark:text-red-400"
                       >
                         <FiTrash2 size={12} /> Delete
                       </button>

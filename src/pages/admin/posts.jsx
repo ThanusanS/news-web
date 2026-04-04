@@ -71,7 +71,7 @@ export default function AllPostsPage() {
       </Head>
 
       <div className="mb-5 flex flex-wrap gap-3">
-        <div className="relative min-w-48 flex-1">
+        <div className="relative w-full sm:min-w-48 sm:flex-1">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={14} />
           <input
             type="text"
@@ -84,10 +84,10 @@ export default function AllPostsPage() {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="form-input w-auto"
+          className="form-input w-full sm:w-auto"
         >
           <option value="">All Categories</option>
-          <option value="sri-lanka">Sri Lanka News 🇱🇰</option>
+          <option value="sri-lanka">Sri Lanka News</option>
           <option value="tech-news">Tech News</option>
           <option value="sports">Sports</option>
           <option value="ai-tutorials">AI & Innovation</option>
@@ -98,7 +98,7 @@ export default function AllPostsPage() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="form-input w-auto"
+          className="form-input w-full sm:w-auto"
         >
           <option value="">All Status</option>
           <option value="published">Published</option>
@@ -106,7 +106,7 @@ export default function AllPostsPage() {
           <option value="private">Private</option>
           <option value="draft">Draft</option>
         </select>
-        <Link href="/admin/new-post" className="btn-primary">
+        <Link href="/admin/new-post" className="btn-primary w-full text-center sm:w-auto">
           + New Post
         </Link>
       </div>
@@ -117,7 +117,82 @@ export default function AllPostsPage() {
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent border-t-transparent" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="md:hidden">
+            {filtered.length === 0 ? (
+              <div className="py-12 text-center text-stone-400">No posts found.</div>
+            ) : (
+              <div className="space-y-3 p-3">
+                {filtered.map((a) => {
+                  const isScheduled =
+                    a.status === 'published' &&
+                    a.publishedAt &&
+                    new Date(a.publishedAt).getTime() > Date.now();
+                  const uiStatus =
+                    a.status === 'archived'
+                      ? 'private'
+                      : isScheduled
+                        ? 'scheduled'
+                        : a.status || 'draft';
+                  const badgeClass =
+                    uiStatus === 'published'
+                      ? 'badge-published'
+                      : uiStatus === 'scheduled'
+                        ? 'bg-blue-100 text-blue-700 rounded px-2 py-0.5 text-xs font-bold uppercase'
+                        : uiStatus === 'private'
+                          ? 'bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200 rounded px-2 py-0.5 text-xs font-bold uppercase'
+                          : 'badge-draft';
+
+                  return (
+                    <div
+                      key={a.$id}
+                      className="rounded-lg border border-stone-200 p-3 dark:border-neutral-700"
+                    >
+                      <h3 className="line-clamp-2 text-sm font-semibold text-stone-900 dark:text-neutral-100">
+                        {a.title}
+                      </h3>
+                      <p className="mt-1 text-xs capitalize text-stone-500 dark:text-neutral-400">
+                        {a.category?.replace(/-/g, ' ')} · {a.author || '—'}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-500 dark:text-neutral-400">
+                        Views: {a.views?.toLocaleString() || 0} ·{' '}
+                        {a.publishedAt ? format(new Date(a.publishedAt), 'MMM d, yyyy') : '—'}
+                      </p>
+                      <div className="mt-2">
+                        <span className={badgeClass}>{uiStatus.toUpperCase()}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-end gap-2">
+                        <Link
+                          href={`/${a.slug}`}
+                          target="_blank"
+                          className="rounded p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-accent dark:hover:bg-neutral-700"
+                          title="View"
+                        >
+                          <FiEye size={14} />
+                        </Link>
+                        <Link
+                          href={`/admin/edit-post/${a.$id}`}
+                          className="rounded p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-accent dark:hover:bg-neutral-700"
+                          title="Edit"
+                        >
+                          <FiEdit2 size={14} />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(a.$id)}
+                          className="rounded p-2 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                          title="Delete"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead className="bg-stone-50 text-xs uppercase tracking-wider text-stone-500 dark:bg-neutral-800 dark:text-neutral-500">
                 <tr>
@@ -209,6 +284,7 @@ export default function AllPostsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </AdminLayout>

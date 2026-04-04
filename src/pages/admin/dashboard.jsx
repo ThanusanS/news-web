@@ -144,7 +144,7 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-stone-900 dark:text-neutral-100 mb-4">Quick Post</h2>
           <div className="space-y-2">
             {[
-              { label: 'Sri Lanka News 🇱🇰', cat: 'sri-lanka', Icon: FiGlobe },
+              { label: 'Sri Lanka News', cat: 'sri-lanka', Icon: FiGlobe },
               { label: 'Sports', cat: 'sports', Icon: FiActivity },
               { label: 'AI & Innovation', cat: 'ai-tutorials', Icon: FiCpu },
               { label: 'Tech News', cat: 'tech-news', Icon: FiActivity },

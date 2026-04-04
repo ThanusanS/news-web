@@ -39,7 +39,7 @@ function SocialIcon({ platform }) {
 
 const CATEGORIES = [
   { label: 'Home', href: '/' },
-  { label: 'Sri Lanka News 🇱🇰', href: '/category/sri-lanka' },
+  { label: 'Sri Lanka News', href: '/category/sri-lanka' },
   { label: 'World News', href: '/category/world' },
   { label: 'Sports', href: '/category/sports' },
   { label: 'Tech News', href: '/category/tech-news' },
@@ -152,7 +152,7 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 gap-3 border-t border-stone-200 pt-5 dark:border-neutral-800 md:grid-cols-3 md:gap-10 lg:gap-14">
           <p className="text-center text-xs text-stone-400 dark:text-neutral-600 md:col-span-2 md:text-left">
-            © 2026 CeylonUpdates.com · All rights reserved · Built in Sri Lanka
+            © 2026 CeylonUpdates.com · All rights reserved.
           </p>
           <div className="flex justify-center gap-4 md:justify-self-start">
             <Link href="/contact" className="text-xs text-stone-400 hover:text-accent">

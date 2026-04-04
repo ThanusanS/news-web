@@ -60,6 +60,14 @@ export default function AdminLayout({ children, title = 'Dashboard', description
     setMobileOpen(false);
   }, [router.pathname]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-neutral-950">
@@ -82,6 +90,12 @@ export default function AdminLayout({ children, title = 'Dashboard', description
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setMobileOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setMobileOpen(false);
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar overlay"
         />
       )}
 
@@ -184,7 +198,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
             {mobileOpen ? <FiX size={18} /> : <FiMenu size={18} />}
           </button>
 
-          <div className="flex items-center gap-1 text-xs text-stone-400 dark:text-neutral-600">
+          <div className="hidden items-center gap-1 text-xs text-stone-400 dark:text-neutral-600 sm:flex">
             <Link href="/admin/dashboard" className="hover:text-accent">
               Admin
             </Link>
@@ -192,8 +206,14 @@ export default function AdminLayout({ children, title = 'Dashboard', description
             <span className="font-medium text-stone-700 dark:text-neutral-300">{title}</span>
           </div>
 
+          <div className="min-w-0 flex-1 sm:hidden">
+            <p className="truncate text-sm font-semibold text-stone-800 dark:text-neutral-200">
+              {title}
+            </p>
+          </div>
+
           <div className="ml-auto flex items-center gap-2">
-            <button className="relative rounded-lg p-2 text-stone-400 transition-all hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200">
+            <button className="relative hidden rounded-lg p-2 text-stone-400 transition-all hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 sm:inline-flex">
               <FiBell size={17} />
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent" />
             </button>
@@ -207,7 +227,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+        <main className="flex-1 overflow-x-auto overflow-y-auto p-2 sm:p-6">
           {description && (
             <p className="mb-6 text-sm text-stone-500 dark:text-neutral-500">{description}</p>
           )}

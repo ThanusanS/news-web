@@ -26,7 +26,7 @@ const RichEditor = dynamic(() => import('../../components/RichEditor'), {
 });
 
 const CATEGORIES = [
-  { value: 'sri-lanka', label: 'Sri Lanka News 🇱🇰' },
+  { value: 'sri-lanka', label: 'Sri Lanka News' },
   { value: 'tech-news', label: 'Tech News' },
   { value: 'sports', label: 'Sports' },
   { value: 'ai-tutorials', label: 'AI & Innovation' },

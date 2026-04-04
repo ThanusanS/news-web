@@ -1,5 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { truncate, stripHtml, readingTime, toSlug, formatNumber, isValidEmail, generateExcerpt, cn } from '../src/utils/helpers';
+import {
+  truncate,
+  stripHtml,
+  readingTime,
+  toSlug,
+  formatNumber,
+  isValidEmail,
+  generateExcerpt,
+  cn,
+} from '../src/utils/helpers';
 import { articleSchema, newsletterSchema, commentSchema } from '../src/utils/validators';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -98,7 +107,8 @@ describe('validators', () => {
       slug: 'valid-article-slug',
       category: 'sri-lanka',
       author: 'Test Author',
-      content: 'This is the content of the article and it needs to be at least one hundred characters long to pass validation.',
+      content:
+        'This is the content of the article and it needs to be at least one hundred characters long to pass validation.',
       status: 'draft',
     };
     it('passes valid article', () => {
@@ -121,11 +131,21 @@ describe('validators', () => {
 
   describe('commentSchema', () => {
     it('passes valid comment', () => {
-      const result = commentSchema.safeParse({ articleId: 'abc123', name: 'John', email: 'j@test.com', content: 'Great article!' });
+      const result = commentSchema.safeParse({
+        articleId: 'abc123',
+        name: 'John',
+        email: 'j@test.com',
+        content: 'Great article!',
+      });
       expect(result.success).toBe(true);
     });
     it('fails short content', () => {
-      const result = commentSchema.safeParse({ articleId: 'abc123', name: 'John', email: 'j@test.com', content: 'H' });
+      const result = commentSchema.safeParse({
+        articleId: 'abc123',
+        name: 'John',
+        email: 'j@test.com',
+        content: 'H',
+      });
       expect(result.success).toBe(false);
     });
   });

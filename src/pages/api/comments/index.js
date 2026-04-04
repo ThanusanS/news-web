@@ -128,8 +128,28 @@ function firstNonEmpty(...values) {
 }
 
 function normalizeCommentDoc(doc) {
-  const name = firstNonEmpty(doc?.name, doc?.commenterName, doc?.authorName, 'Anonymous');
   const email = firstNonEmpty(doc?.email, doc?.commenterEmail, doc?.authorEmail, '');
+  const emailLocalName = String(email || '')
+    .split('@')[0]
+    .replace(/[._-]+/g, ' ')
+    .trim();
+  const fallbackName = emailLocalName
+    ? emailLocalName
+        .split(' ')
+        .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+        .join(' ')
+    : 'Anonymous';
+
+  const name = firstNonEmpty(
+    doc?.name,
+    doc?.commenterName,
+    doc?.commenter,
+    doc?.authorName,
+    doc?.username,
+    doc?.userName,
+    doc?.fullName,
+    fallbackName
+  );
   const content = firstNonEmpty(
     doc?.content,
     doc?.comment,
@@ -310,9 +330,20 @@ export default async function handler(req, res) {
       const comment = await createCommentWithFallback({
         articleId: normalizedArticleId,
         name: safeName,
+        commenterName: safeName,
+        commenter: safeName,
+        authorName: safeName,
         email: safeEmail,
+        commenterEmail: safeEmail,
+        authorEmail: safeEmail,
         content: cleanContent,
+        comment: cleanContent,
+        commentText: cleanContent,
+        message: cleanContent,
+        body: cleanContent,
         parentId: parentId || '',
+        parentCommentId: parentId || '',
+        replyTo: parentId || '',
         approved: false, // Requires admin approval
         createdAt: new Date().toISOString(),
       });
