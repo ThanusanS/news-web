@@ -82,6 +82,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
   if (!user) return null;
 
   const sidebarWidth = collapsed ? 'lg:w-16' : 'lg:w-60';
+  const showExpandedUserSection = !collapsed || mobileOpen;
 
   return (
     <div className="flex min-h-screen bg-stone-100 dark:bg-neutral-950">
@@ -142,7 +143,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
         </nav>
 
         {/* User */}
-        {!collapsed && (
+        {showExpandedUserSection && (
           <div className="border-t border-stone-200 p-4 dark:border-neutral-800">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-xs font-bold text-white">
@@ -174,7 +175,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
             </div>
           </div>
         )}
-        {collapsed && (
+        {collapsed && !mobileOpen && (
           <div className="border-t border-stone-200 p-2 dark:border-neutral-800">
             <button
               onClick={logout}
