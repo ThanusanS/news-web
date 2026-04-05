@@ -65,6 +65,10 @@ export default function NewPostPage() {
   const [autosaveEnabled, setAutosaveEnabled] = useState(true);
   const [autosaveIntervalMs, setAutosaveIntervalMs] = useState(1000);
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiTone, setAiTone] = useState('neutral and factual');
+  const [aiWordTarget, setAiWordTarget] = useState(1500);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -287,6 +291,59 @@ export default function NewPostPage() {
     }
   }
 
+  async function handleGenerateWithAI() {
+    if (!aiTopic.trim()) {
+      toast.error('Please enter a topic for AI generation.');
+      return;
+    }
+
+    setAiGenerating(true);
+    try {
+      const response = await fetch('/api/admin/generate-article', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: aiTopic,
+          category: form.category || 'world',
+          minWords: aiWordTarget,
+          tone: aiTone,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'AI generation failed.');
+      }
+
+      const generated = data?.article;
+      if (!generated?.content || !generated?.title) {
+        throw new Error('AI did not return a valid article payload.');
+      }
+
+      setForm((f) => ({
+        ...f,
+        title: generated.title || f.title,
+        slug: generated.slug || f.slug,
+        category: generated.category || f.category || 'world',
+        author: generated.author || f.author || 'CeylonUpdates Editorial Desk',
+        excerpt: generated.excerpt || f.excerpt,
+        content: generated.content || f.content,
+        metaTitle: generated.metaTitle || f.metaTitle,
+        metaDescription: generated.metaDescription || f.metaDescription,
+        ogTitle: generated.ogTitle || f.ogTitle,
+        ogDescription: generated.ogDescription || f.ogDescription,
+        focusKeyword: generated.focusKeyword || f.focusKeyword,
+      }));
+
+      toast.success(
+        `AI draft created (${generated.generatedWordCount || 0} words). Review and publish when ready.`
+      );
+    } catch (err) {
+      toast.error(err?.message || 'Failed to generate article with AI.');
+    }
+    setAiGenerating(false);
+  }
+
   async function handleSubmit(action) {
     setSaving(true);
     try {
@@ -456,6 +513,63 @@ export default function NewPostPage() {
 
         {/* Sidebar controls */}
         <div className="space-y-4">
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">AI News Generator</h3>
+            <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
+              Paste a topic and generate a full SEO-ready draft directly into this editor.
+            </p>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Topic
+            </label>
+            <textarea
+              value={aiTopic}
+              onChange={(e) => setAiTopic(e.target.value)}
+              rows={3}
+              placeholder="Example: Sri Lanka inflation 2026"
+              className="form-input mb-3 resize-none"
+            />
+
+            <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+                  Target Words
+                </label>
+                <input
+                  type="number"
+                  min={800}
+                  max={3000}
+                  step={100}
+                  value={aiWordTarget}
+                  onChange={(e) => setAiWordTarget(Number(e.target.value) || 1500)}
+                  className="form-input"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+                  Tone
+                </label>
+                <select
+                  value={aiTone}
+                  onChange={(e) => setAiTone(e.target.value)}
+                  className="form-input"
+                >
+                  <option value="neutral and factual">Neutral</option>
+                  <option value="investigative and analytical">Analytical</option>
+                  <option value="explainer style for general audience">Explainer</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateWithAI}
+              disabled={aiGenerating}
+              className="btn-primary w-full py-2.5 disabled:opacity-40"
+            >
+              {aiGenerating ? 'Generating Draft...' : 'Generate With AI'}
+            </button>
+          </div>
+
           {/* Publish box */}
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Publish</h3>

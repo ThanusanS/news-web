@@ -1028,6 +1028,18 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     : '';
 
   useEffect(() => {
+    if (!editor) return;
+
+    const incomingHtml = normalizeLegacyListMarkup(content || '');
+    const currentHtml = normalizeLegacyListMarkup(editor.getHTML() || '');
+    if (incomingHtml === currentHtml) return;
+
+    isNormalizingRef.current = true;
+    editor.commands.setContent(incomingHtml, false);
+    isNormalizingRef.current = false;
+  }, [editor, content]);
+
+  useEffect(() => {
     if (!selectedImageAttrs && isInlineEditorPinned) {
       setIsInlineEditorPinned(false);
     }
