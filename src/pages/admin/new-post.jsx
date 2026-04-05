@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
@@ -67,8 +67,17 @@ export default function NewPostPage() {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [aiTopic, setAiTopic] = useState('');
   const [aiTone, setAiTone] = useState('neutral and factual');
-  const [aiWordTarget, setAiWordTarget] = useState(1500);
+  const [aiWordTarget, setAiWordTarget] = useState(1200);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiAttempt, setAiAttempt] = useState(0);
+  const [trendSeed, setTrendSeed] = useState('');
+  const [trendLoading, setTrendLoading] = useState(false);
+  const [trendData, setTrendData] = useState({
+    trendingTopics: [],
+    headlineIdeas: [],
+    keywords: [],
+  });
+  const suppressAutosaveRef = useRef(false);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -111,6 +120,10 @@ export default function NewPostPage() {
   }, []);
 
   function saveDraftSnapshot(showToast = false) {
+    if (suppressAutosaveRef.current) {
+      return;
+    }
+
     try {
       const now = Date.now();
       localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ form, scheduledAt, ts: now }));
@@ -143,6 +156,35 @@ export default function NewPostPage() {
   }, [form, scheduledAt, autosaveEnabled, autosaveIntervalMs]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  function resetComposer(showToast = true) {
+    suppressAutosaveRef.current = false;
+    setForm({
+      title: '',
+      slug: '',
+      category: router.query.category || '',
+      author: '',
+      excerpt: '',
+      content: '',
+      featuredImage: '',
+      newsImage: '',
+      metaTitle: '',
+      metaDescription: '',
+      ogTitle: '',
+      ogDescription: '',
+      canonicalUrl: '',
+      focusKeyword: '',
+      status: 'draft',
+    });
+    setScheduledAt('');
+    setAiTopic('');
+    setAiAttempt(0);
+    localStorage.removeItem(AUTOSAVE_KEY);
+    setLastSavedAt(null);
+    if (showToast) {
+      toast.success('Composer cleared. Ready for a new post.');
+    }
+  }
 
   function openPreview() {
     try {
@@ -291,31 +333,52 @@ export default function NewPostPage() {
     }
   }
 
-  async function handleGenerateWithAI() {
-    if (!aiTopic.trim()) {
+  async function handleGenerateWithAI(topicOverride = '') {
+    const seedTopic = String(topicOverride || aiTopic).trim();
+    if (!seedTopic) {
       toast.error('Please enter a topic for AI generation.');
       return;
     }
 
-    setAiGenerating(true);
-    try {
-      const response = await fetch('/api/admin/generate-article', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: aiTopic,
-          category: form.category || 'world',
-          minWords: aiWordTarget,
-          tone: aiTone,
-        }),
-      });
+    if (topicOverride) {
+      setAiTopic(seedTopic);
+    }
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || 'AI generation failed.');
+    setAiGenerating(true);
+    setAiAttempt(0);
+    try {
+      const maxAttempts = 3;
+      let generated = null;
+      let lastError = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        setAiAttempt(attempt);
+        const response = await fetch('/api/admin/generate-article', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic: seedTopic,
+            category: form.category || 'world',
+            minWords: aiWordTarget,
+            tone: aiTone,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok && data?.article) {
+          generated = data.article;
+          break;
+        }
+
+        lastError = data?.error || 'AI generation failed.';
+
+        // Retry automatically when backend says the article is below target length.
+        const shouldRetryForLength = response.status === 422;
+        if (!shouldRetryForLength || attempt === maxAttempts) {
+          throw new Error(lastError);
+        }
       }
 
-      const generated = data?.article;
       if (!generated?.content || !generated?.title) {
         throw new Error('AI did not return a valid article payload.');
       }
@@ -341,7 +404,39 @@ export default function NewPostPage() {
     } catch (err) {
       toast.error(err?.message || 'Failed to generate article with AI.');
     }
+    setAiAttempt(0);
     setAiGenerating(false);
+  }
+
+  async function handleFindTrending() {
+    if (!trendSeed.trim()) {
+      toast.error('Enter a seed term like Sri Lanka or AI.');
+      return;
+    }
+
+    setTrendLoading(true);
+    try {
+      const response = await fetch('/api/admin/trending-finder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seed: trendSeed, region: 'Sri Lanka' }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to fetch trending ideas.');
+      }
+
+      setTrendData({
+        trendingTopics: data?.trendingTopics || [],
+        headlineIdeas: data?.headlineIdeas || [],
+        keywords: data?.keywords || [],
+      });
+      toast.success('Trending ideas loaded.');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to fetch trending ideas.');
+    }
+    setTrendLoading(false);
   }
 
   async function handleSubmit(action) {
@@ -399,6 +494,8 @@ export default function NewPostPage() {
               : 'Draft saved.';
 
       toast.success(successMessage);
+      // Stop pending autosave timers from writing the just-published draft back to localStorage.
+      suppressAutosaveRef.current = true;
       localStorage.removeItem(AUTOSAVE_KEY);
       setLastSavedAt(null);
       router.push('/admin/posts');
@@ -514,6 +611,107 @@ export default function NewPostPage() {
         {/* Sidebar controls */}
         <div className="space-y-4">
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">Trending News Finder</h3>
+            <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
+              Find trending topics, headline ideas, and SEO keywords from a seed term.
+            </p>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Seed Input
+            </label>
+            <input
+              type="text"
+              value={trendSeed}
+              onChange={(e) => setTrendSeed(e.target.value)}
+              placeholder="Example: Sri Lanka or AI"
+              className="form-input mb-3"
+            />
+            <button
+              type="button"
+              onClick={handleFindTrending}
+              disabled={trendLoading}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {trendLoading ? 'Finding Trends...' : 'Find Trending Ideas'}
+            </button>
+
+            {(trendData.trendingTopics.length > 0 ||
+              trendData.headlineIdeas.length > 0 ||
+              trendData.keywords.length > 0) && (
+              <div className="mt-3 space-y-3 text-xs">
+                {trendData.trendingTopics.length > 0 && (
+                  <div>
+                    <p className="mb-1 font-semibold text-stone-700 dark:text-neutral-200">
+                      Trending Topics
+                    </p>
+                    <ul className="space-y-1 text-stone-600 dark:text-neutral-300">
+                      {trendData.trendingTopics.slice(0, 5).map((item) => (
+                        <li key={`topic-${item}`} className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setAiTopic(item)}
+                            className="flex-1 rounded border border-stone-200 px-2 py-1 text-left hover:border-accent dark:border-neutral-700"
+                          >
+                            {item}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleGenerateWithAI(item)}
+                            disabled={aiGenerating}
+                            className="rounded border border-stone-200 px-2 py-1 font-semibold text-stone-700 hover:border-accent disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200"
+                          >
+                            Generate Now
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {trendData.headlineIdeas.length > 0 && (
+                  <div>
+                    <p className="mb-1 font-semibold text-stone-700 dark:text-neutral-200">
+                      Headline Ideas
+                    </p>
+                    <ul className="space-y-1 text-stone-600 dark:text-neutral-300">
+                      {trendData.headlineIdeas.slice(0, 5).map((item) => (
+                        <li key={`headline-${item}`}>
+                          <button
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, title: item }))}
+                            className="w-full rounded border border-stone-200 px-2 py-1 text-left hover:border-accent dark:border-neutral-700"
+                          >
+                            {item}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {trendData.keywords.length > 0 && (
+                  <div>
+                    <p className="mb-1 font-semibold text-stone-700 dark:text-neutral-200">
+                      Keywords
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {trendData.keywords.slice(0, 8).map((item) => (
+                        <button
+                          key={`kw-${item}`}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, focusKeyword: item }))}
+                          className="rounded border border-stone-200 px-2 py-1 text-stone-600 hover:border-accent dark:border-neutral-700 dark:text-neutral-300"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">AI News Generator</h3>
             <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
               Paste a topic and generate a full SEO-ready draft directly into this editor.
@@ -536,11 +734,10 @@ export default function NewPostPage() {
                 </label>
                 <input
                   type="number"
-                  min={800}
-                  max={3000}
+                  min={1000}
                   step={100}
                   value={aiWordTarget}
-                  onChange={(e) => setAiWordTarget(Number(e.target.value) || 1500)}
+                  onChange={(e) => setAiWordTarget(Number(e.target.value) || 1200)}
                   className="form-input"
                 />
               </div>
@@ -566,8 +763,13 @@ export default function NewPostPage() {
               disabled={aiGenerating}
               className="btn-primary w-full py-2.5 disabled:opacity-40"
             >
-              {aiGenerating ? 'Generating Draft...' : 'Generate With AI'}
+              {aiGenerating ? `Generating Draft... (${aiAttempt || 1}/3)` : 'Generate With AI'}
             </button>
+            {aiGenerating && (
+              <p className="mt-2 text-center text-xs text-stone-500 dark:text-neutral-400">
+                Auto retry active if minimum word count is not met.
+              </p>
+            )}
           </div>
 
           {/* Publish box */}
@@ -626,6 +828,13 @@ export default function NewPostPage() {
                   Clear Local Draft
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => resetComposer(true)}
+                className="mt-2 w-full rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+              >
+                Start Fresh
+              </button>
             </div>
             <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
               Schedule (optional)

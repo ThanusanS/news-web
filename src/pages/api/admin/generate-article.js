@@ -66,7 +66,7 @@ function buildPrompt({ topic, category, minWords, tone }) {
     `Write a detailed news article about: "${topic}"`,
     '',
     'Requirements:',
-    `- Minimum ${minWords} words`,
+    `- Minimum ${minWords} words (no maximum limit)`,
     '- SEO optimized',
     '- Engaging headline (H1)',
     '- Meta description (160 characters)',
@@ -89,6 +89,70 @@ function buildPrompt({ topic, category, minWords, tone }) {
     '}',
     'Return ONLY valid JSON and nothing else.',
   ].join('\n');
+}
+
+function buildExpansionPrompt({ topic, category, minWords, tone, draft }) {
+  return [
+    'You are a professional news writer and SEO expert.',
+    '',
+    'Your previous draft is too short. Expand and improve it while preserving factual tone.',
+    `Topic: "${topic}"`,
+    `Category: ${category || 'world'}`,
+    `Required minimum words: ${minWords} (no maximum limit)`,
+    `Tone: ${tone}`,
+    '',
+    'Keep and improve:',
+    '- Engaging H1 headline',
+    '- SEO meta description',
+    '- H2/H3 structure',
+    '- Intro/body/conclusion',
+    '- Bullet points where useful',
+    '- No fake claims',
+    '',
+    'Return ONLY valid JSON in this format:',
+    '{',
+    '  "title": "",',
+    '  "meta_description": "",',
+    '  "keywords": [],',
+    '  "content": ""',
+    '}',
+    '',
+    'Current draft JSON to expand:',
+    JSON.stringify(draft || {}, null, 2),
+  ].join('\n');
+}
+
+async function requestHfCompletion({ apiKey, model, prompt }) {
+  const hfResponse = await fetch('https://router.huggingface.co/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.6,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert newsroom editor and SEO strategist. Return only valid JSON.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    }),
+  });
+
+  if (!hfResponse.ok) {
+    const details = await hfResponse.text();
+    throw new Error(`Hugging Face provider error: ${details.slice(0, 400)}`);
+  }
+
+  const data = await hfResponse.json();
+  const content = data?.choices?.[0]?.message?.content;
+  return parseJsonSafely(content);
 }
 
 export default async function handler(req, res) {
@@ -126,67 +190,67 @@ export default async function handler(req, res) {
     const {
       topic,
       category = 'world',
-      minWords = 1500,
+      minWords = 1200,
       tone = 'neutral and factual',
     } = req.body || {};
     if (!String(topic || '').trim()) {
       return res.status(400).json({ error: 'Topic is required.' });
     }
 
-    const prompt = buildPrompt({
-      topic: String(topic).trim(),
-      category: String(category || 'world').trim(),
-      minWords: Math.max(800, Math.min(Number(minWords) || 1500, 3000)),
-      tone: String(tone || 'neutral and factual').trim(),
-    });
+    const safeTopic = String(topic).trim();
+    const safeCategory = String(category || 'world').trim();
+    const safeTone = String(tone || 'neutral and factual').trim();
+    const targetWords = Math.max(1000, Number(minWords) || 1200);
 
-    const hfResponse = await fetch('https://router.huggingface.co/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.7,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert newsroom editor and SEO strategist. Return only valid JSON.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
+    let parsed = await requestHfCompletion({
+      apiKey,
+      model,
+      prompt: buildPrompt({
+        topic: safeTopic,
+        category: safeCategory,
+        minWords: targetWords,
+        tone: safeTone,
       }),
     });
 
-    if (!hfResponse.ok) {
-      const details = await hfResponse.text();
-      return res.status(502).json({
-        error: 'Hugging Face provider error while generating article.',
-        details: details.slice(0, 400),
+    let draftHtml = String(parsed.content || '').trim();
+    let wordCount = toWordCount(draftHtml);
+
+    for (let attempt = 0; attempt < 2 && wordCount < targetWords; attempt += 1) {
+      parsed = await requestHfCompletion({
+        apiKey,
+        model,
+        prompt: buildExpansionPrompt({
+          topic: safeTopic,
+          category: safeCategory,
+          minWords: targetWords,
+          tone: safeTone,
+          draft: parsed,
+        }),
+      });
+      draftHtml = String(parsed.content || '').trim();
+      wordCount = toWordCount(draftHtml);
+    }
+
+    if (wordCount < targetWords) {
+      return res.status(422).json({
+        error: `Generation did not reach minimum length (${wordCount}/${targetWords} words). Please retry.`,
+        generatedWordCount: wordCount,
+        targetWords,
       });
     }
 
-    const data = await hfResponse.json();
-    const content = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonSafely(content);
-
-    const title = clampText(parsed.title, 300) || `Latest Update: ${String(topic).trim()}`;
-    const contentHtml = String(parsed.content || '').trim();
+    const title = clampText(parsed.title, 300) || `Latest Update: ${safeTopic}`;
+    const contentHtml = draftHtml;
     if (!contentHtml) {
       return res.status(502).json({ error: 'AI response missing content.' });
     }
 
     const slug = slugify(title, { lower: true, strict: true }).slice(0, 200);
-    const wordCount = toWordCount(contentHtml);
     const keywords = Array.isArray(parsed.keywords)
       ? parsed.keywords.filter((k) => typeof k === 'string' && k.trim()).map((k) => k.trim())
       : [];
-    const focusKeyword = clampText(keywords[0] || '', 100) || String(topic).slice(0, 100);
+    const focusKeyword = clampText(keywords[0] || '', 100) || safeTopic.slice(0, 100);
     const excerptFromBody = clampText(stripHtml(contentHtml), 200);
     const metaDescription =
       clampText(parsed.meta_description, 155) || clampText(excerptFromBody, 155) || '';
@@ -209,7 +273,8 @@ export default async function handler(req, res) {
       tags: keywords.slice(0, 10),
       status: 'draft',
       generatedWordCount: wordCount,
-      targetWords: Math.max(800, Math.min(Number(minWords) || 1500, 3000)),
+      targetWords,
+      minWordsMet: wordCount >= targetWords,
     };
 
     return res.status(200).json({ article });
