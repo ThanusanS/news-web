@@ -1,4 +1,5 @@
 import slugify from 'slugify';
+import { chatCompletionsWithFallback, toAiHttpError } from '../../../lib/ai/fallback';
 
 const rateLimitMap = new Map();
 
@@ -122,37 +123,28 @@ function buildExpansionPrompt({ topic, category, minWords, tone, draft }) {
   ].join('\n');
 }
 
-async function requestHfCompletion({ apiKey, model, prompt }) {
-  const hfResponse = await fetch('https://router.huggingface.co/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.6,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert newsroom editor and SEO strategist. Return only valid JSON.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    }),
+async function requestAiCompletion({ prompt }) {
+  const completion = await chatCompletionsWithFallback({
+    temperature: 0.6,
+    messages: [
+      {
+        role: 'system',
+        content: 'You are an expert newsroom editor and SEO strategist. Return only valid JSON.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
   });
 
-  if (!hfResponse.ok) {
-    const details = await hfResponse.text();
-    throw new Error(`Hugging Face provider error: ${details.slice(0, 400)}`);
-  }
-
-  const data = await hfResponse.json();
-  const content = data?.choices?.[0]?.message?.content;
-  return parseJsonSafely(content);
+  return {
+    parsed: parseJsonSafely(completion?.content),
+    generation: {
+      provider: String(completion?.provider || '').trim(),
+      model: String(completion?.model || '').trim(),
+    },
+  };
 }
 
 export default async function handler(req, res) {
@@ -178,14 +170,6 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Too many generation requests. Try again later.' });
   }
 
-  const apiKey = process.env.HF_TOKEN;
-  const model = process.env.HF_MODEL || 'deepseek-ai/DeepSeek-V3-0324:novita';
-  if (!apiKey) {
-    return res.status(500).json({
-      error: 'Missing HF_TOKEN. Add it to your environment variables first.',
-    });
-  }
-
   try {
     const {
       topic,
@@ -202,9 +186,7 @@ export default async function handler(req, res) {
     const safeTone = String(tone || 'neutral and factual').trim();
     const targetWords = Math.max(1000, Number(minWords) || 1200);
 
-    let parsed = await requestHfCompletion({
-      apiKey,
-      model,
+    let completionResult = await requestAiCompletion({
       prompt: buildPrompt({
         topic: safeTopic,
         category: safeCategory,
@@ -212,14 +194,14 @@ export default async function handler(req, res) {
         tone: safeTone,
       }),
     });
+    let parsed = completionResult.parsed || {};
+    let generation = completionResult.generation || { provider: '', model: '' };
 
     let draftHtml = String(parsed.content || '').trim();
     let wordCount = toWordCount(draftHtml);
 
     for (let attempt = 0; attempt < 2 && wordCount < targetWords; attempt += 1) {
-      parsed = await requestHfCompletion({
-        apiKey,
-        model,
+      completionResult = await requestAiCompletion({
         prompt: buildExpansionPrompt({
           topic: safeTopic,
           category: safeCategory,
@@ -228,6 +210,8 @@ export default async function handler(req, res) {
           draft: parsed,
         }),
       });
+      parsed = completionResult.parsed || {};
+      generation = completionResult.generation || generation;
       draftHtml = String(parsed.content || '').trim();
       wordCount = toWordCount(draftHtml);
     }
@@ -277,11 +261,15 @@ export default async function handler(req, res) {
       minWordsMet: wordCount >= targetWords,
     };
 
-    return res.status(200).json({ article });
+    return res.status(200).json({
+      article,
+      generation,
+    });
   } catch (err) {
-    return res.status(500).json({
-      error: 'Failed to generate article',
-      details: err?.message || 'Unknown error',
+    const aiError = toAiHttpError(err, 'Failed to generate article');
+    return res.status(aiError.status).json({
+      error: aiError.error,
+      details: aiError.details,
     });
   }
 }

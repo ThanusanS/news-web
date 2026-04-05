@@ -70,12 +70,40 @@ export default function NewPostPage() {
   const [aiWordTarget, setAiWordTarget] = useState(1200);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiAttempt, setAiAttempt] = useState(0);
+  const [aiGenerationMeta, setAiGenerationMeta] = useState({ provider: '', model: '' });
   const [trendSeed, setTrendSeed] = useState('');
+  const [trendRegion, setTrendRegion] = useState('Worldwide');
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendData, setTrendData] = useState({
     trendingTopics: [],
     headlineIdeas: [],
     keywords: [],
+  });
+  const [headlineLoading, setHeadlineLoading] = useState(false);
+  const [headlineIdeas, setHeadlineIdeas] = useState([]);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkSuggestions, setLinkSuggestions] = useState([]);
+  const [seoFixLoading, setSeoFixLoading] = useState(false);
+  const [factCheckLoading, setFactCheckLoading] = useState(false);
+  const [assistantRunning, setAssistantRunning] = useState(false);
+  const [assistantStep, setAssistantStep] = useState('');
+  const [assistantStatus, setAssistantStatus] = useState({
+    headline: 'idle',
+    links: 'idle',
+    seo: 'idle',
+    fact: 'idle',
+  });
+  const [factCheckReport, setFactCheckReport] = useState({
+    riskScore: null,
+    summary: '',
+    flags: [],
+    recommendedSources: [],
+  });
+  const [aiStatusLoading, setAiStatusLoading] = useState(false);
+  const [aiProviderStatus, setAiProviderStatus] = useState({
+    providerOrder: [],
+    activeCount: 0,
+    providers: {},
   });
   const suppressAutosaveRef = useRef(false);
 
@@ -155,7 +183,53 @@ export default function NewPostPage() {
     return () => clearTimeout(timer);
   }, [form, scheduledAt, autosaveEnabled, autosaveIntervalMs]);
 
+  useEffect(() => {
+    loadAiProviderStatus();
+  }, []);
+
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  async function loadAiProviderStatus() {
+    setAiStatusLoading(true);
+    try {
+      const response = await fetch('/api/admin/ai-status');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to load AI provider status.');
+      }
+      setAiProviderStatus({
+        providerOrder: Array.isArray(data?.providerOrder) ? data.providerOrder : [],
+        activeCount: Number(data?.activeCount) || 0,
+        providers: data?.providers && typeof data.providers === 'object' ? data.providers : {},
+      });
+    } catch (err) {
+      toast.error(err?.message || 'Failed to load AI provider status.');
+    } finally {
+      setAiStatusLoading(false);
+    }
+  }
+
+  function normalizeAiText(input) {
+    if (typeof input === 'string') {
+      const text = input.trim();
+      return text === '[object Object]' ? '' : text;
+    }
+    if (input && typeof input === 'object') {
+      const candidate =
+        input.topic ||
+        input.title ||
+        input.headline ||
+        input.keyword ||
+        input.text ||
+        input.name ||
+        input.label;
+      if (typeof candidate === 'string') {
+        return candidate.trim();
+      }
+    }
+    const fallback = String(input || '').trim();
+    return fallback === '[object Object]' ? '' : fallback;
+  }
 
   function resetComposer(showToast = true) {
     suppressAutosaveRef.current = false;
@@ -334,7 +408,12 @@ export default function NewPostPage() {
   }
 
   async function handleGenerateWithAI(topicOverride = '') {
-    const seedTopic = String(topicOverride || aiTopic).trim();
+    const isClickEvent =
+      topicOverride &&
+      typeof topicOverride === 'object' &&
+      typeof topicOverride.preventDefault === 'function';
+    const normalizedOverride = isClickEvent ? '' : topicOverride;
+    const seedTopic = normalizeAiText(normalizedOverride || aiTopic);
     if (!seedTopic) {
       toast.error('Please enter a topic for AI generation.');
       return;
@@ -346,9 +425,11 @@ export default function NewPostPage() {
 
     setAiGenerating(true);
     setAiAttempt(0);
+    setAiGenerationMeta({ provider: '', model: '' });
     try {
       const maxAttempts = 3;
       let generated = null;
+      let generatedMeta = { provider: '', model: '' };
       let lastError = null;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -364,13 +445,24 @@ export default function NewPostPage() {
           }),
         });
 
-        const data = await response.json();
+        const raw = await response.text();
+        let data = {};
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          data = {};
+        }
         if (response.ok && data?.article) {
           generated = data.article;
+          generatedMeta = {
+            provider: String(data?.generation?.provider || '').trim(),
+            model: String(data?.generation?.model || '').trim(),
+          };
           break;
         }
 
-        lastError = data?.error || 'AI generation failed.';
+        const errorText = [data?.error, data?.details].filter(Boolean).join(' - ');
+        lastError = errorText || 'AI generation failed.';
 
         // Retry automatically when backend says the article is below target length.
         const shouldRetryForLength = response.status === 422;
@@ -398,6 +490,8 @@ export default function NewPostPage() {
         focusKeyword: generated.focusKeyword || f.focusKeyword,
       }));
 
+      setAiGenerationMeta(generatedMeta);
+
       toast.success(
         `AI draft created (${generated.generatedWordCount || 0} words). Review and publish when ready.`
       );
@@ -419,7 +513,7 @@ export default function NewPostPage() {
       const response = await fetch('/api/admin/trending-finder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seed: trendSeed, region: 'Sri Lanka' }),
+        body: JSON.stringify({ seed: trendSeed, region: trendRegion }),
       });
 
       const data = await response.json();
@@ -428,15 +522,203 @@ export default function NewPostPage() {
       }
 
       setTrendData({
-        trendingTopics: data?.trendingTopics || [],
-        headlineIdeas: data?.headlineIdeas || [],
-        keywords: data?.keywords || [],
+        trendingTopics: Array.isArray(data?.trendingTopics)
+          ? data.trendingTopics.map(normalizeAiText).filter(Boolean)
+          : [],
+        headlineIdeas: Array.isArray(data?.headlineIdeas)
+          ? data.headlineIdeas.map(normalizeAiText).filter(Boolean)
+          : [],
+        keywords: Array.isArray(data?.keywords)
+          ? data.keywords.map(normalizeAiText).filter(Boolean)
+          : [],
       });
-      toast.success('Trending ideas loaded.');
+      toast.success(`Trending ideas loaded (${trendRegion}).`);
     } catch (err) {
       toast.error(err?.message || 'Failed to fetch trending ideas.');
     }
     setTrendLoading(false);
+  }
+
+  async function handleGenerateHeadlineIdeas() {
+    const topic = String(form.title || aiTopic || trendSeed).trim();
+    if (!topic) {
+      toast.error('Add a title/topic first for headline ideas.');
+      return;
+    }
+
+    setHeadlineLoading(true);
+    try {
+      const response = await fetch('/api/admin/headline-ab', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, content: form.content, count: 8 }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to generate headline ideas.');
+      }
+      setHeadlineIdeas(Array.isArray(data?.headlines) ? data.headlines : []);
+      toast.success('Headline ideas ready.');
+      return true;
+    } catch (err) {
+      toast.error(err?.message || 'Failed to generate headline ideas.');
+      return false;
+    } finally {
+      setHeadlineLoading(false);
+    }
+  }
+
+  async function handleRecommendInternalLinks() {
+    if (!form.title && !form.content) {
+      toast.error('Write some title/content first.');
+      return;
+    }
+
+    setLinkLoading(true);
+    try {
+      const response = await fetch('/api/admin/internal-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          content: form.content,
+          currentSlug: form.slug,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to suggest internal links.');
+      }
+      setLinkSuggestions(Array.isArray(data?.suggestions) ? data.suggestions : []);
+      toast.success('Internal link suggestions ready.');
+      return true;
+    } catch (err) {
+      toast.error(err?.message || 'Failed to suggest internal links.');
+      return false;
+    } finally {
+      setLinkLoading(false);
+    }
+  }
+
+  async function handleSeoAutoFix() {
+    if (!form.title && !form.content) {
+      toast.error('Write title/content before SEO auto-fix.');
+      return;
+    }
+
+    setSeoFixLoading(true);
+    try {
+      const response = await fetch('/api/admin/seo-autofix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          excerpt: form.excerpt,
+          content: form.content,
+          focusKeyword: form.focusKeyword,
+          metaTitle: form.metaTitle,
+          metaDescription: form.metaDescription,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to auto-fix SEO.');
+      }
+
+      setForm((f) => ({
+        ...f,
+        excerpt: data?.excerpt || f.excerpt,
+        focusKeyword: data?.focusKeyword || f.focusKeyword,
+        metaTitle: data?.metaTitle || f.metaTitle,
+        metaDescription: data?.metaDescription || f.metaDescription,
+      }));
+      toast.success('SEO fields optimized.');
+      return true;
+    } catch (err) {
+      toast.error(err?.message || 'Failed to auto-fix SEO.');
+      return false;
+    } finally {
+      setSeoFixLoading(false);
+    }
+  }
+
+  async function handleFactCheckGuard() {
+    if (!form.title && !form.content) {
+      toast.error('Write title/content before running fact-check.');
+      return;
+    }
+
+    setFactCheckLoading(true);
+    try {
+      const response = await fetch('/api/admin/fact-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: form.title, content: form.content }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to run fact-check guard.');
+      }
+
+      setFactCheckReport({
+        riskScore: Number.isFinite(Number(data?.riskScore)) ? Number(data.riskScore) : null,
+        summary: data?.summary || '',
+        flags: Array.isArray(data?.flags) ? data.flags : [],
+        recommendedSources: Array.isArray(data?.recommendedSources) ? data.recommendedSources : [],
+      });
+      toast.success('Fact-check analysis complete.');
+      return true;
+    } catch (err) {
+      toast.error(err?.message || 'Failed to run fact-check guard.');
+      return false;
+    } finally {
+      setFactCheckLoading(false);
+    }
+  }
+
+  async function handleRunAiAssistant() {
+    if (!form.title && !form.content) {
+      toast.error('Write title/content first to run AI assistant.');
+      return;
+    }
+
+    setAssistantRunning(true);
+    setAssistantStatus({
+      headline: 'idle',
+      links: 'idle',
+      seo: 'idle',
+      fact: 'idle',
+    });
+
+    setAssistantStep('Generating headline ideas...');
+    setAssistantStatus((s) => ({ ...s, headline: 'running' }));
+    const headlineOk = await handleGenerateHeadlineIdeas();
+    setAssistantStatus((s) => ({ ...s, headline: headlineOk ? 'success' : 'error' }));
+
+    setAssistantStep('Finding internal links...');
+    setAssistantStatus((s) => ({ ...s, links: 'running' }));
+    const linksOk = await handleRecommendInternalLinks();
+    setAssistantStatus((s) => ({ ...s, links: linksOk ? 'success' : 'error' }));
+
+    setAssistantStep('Optimizing SEO fields...');
+    setAssistantStatus((s) => ({ ...s, seo: 'running' }));
+    const seoOk = await handleSeoAutoFix();
+    setAssistantStatus((s) => ({ ...s, seo: seoOk ? 'success' : 'error' }));
+
+    setAssistantStep('Running fact-check guard...');
+    setAssistantStatus((s) => ({ ...s, fact: 'running' }));
+    const factOk = await handleFactCheckGuard();
+    setAssistantStatus((s) => ({ ...s, fact: factOk ? 'success' : 'error' }));
+
+    setAssistantStep('Done');
+    if (headlineOk && linksOk && seoOk && factOk) {
+      toast.success('AI Assistant completed all checks.');
+    } else {
+      toast.error('AI Assistant finished with some failed steps.');
+    }
+    setAssistantRunning(false);
+    setTimeout(() => setAssistantStep(''), 1200);
   }
 
   async function handleSubmit(action) {
@@ -550,6 +832,18 @@ export default function NewPostPage() {
   const textContent = contentText;
   const wordCount = textContent ? textContent.split(' ').length : 0;
   const charCount = textContent.length;
+  const currentWorkingProvider = (aiProviderStatus.providerOrder || []).find((provider) => {
+    const status = aiProviderStatus.providers?.[provider] || {};
+    const configured = Boolean(status.configured);
+    const reachable = provider === 'ollama' ? Boolean(status.reachable) : true;
+    return configured && reachable;
+  });
+  const currentWorkingModel = currentWorkingProvider
+    ? String(aiProviderStatus.providers?.[currentWorkingProvider]?.model || '').trim()
+    : '';
+  const currentWorkingClass = currentWorkingProvider
+    ? 'text-green-700 dark:text-green-300'
+    : 'text-red-700 dark:text-red-300';
 
   return (
     <AdminLayout title="New Post">
@@ -611,6 +905,49 @@ export default function NewPostPage() {
         {/* Sidebar controls */}
         <div className="space-y-4">
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold">AI Provider Status</h3>
+              <button
+                type="button"
+                onClick={loadAiProviderStatus}
+                disabled={aiStatusLoading}
+                className="rounded border border-stone-200 px-2 py-1 text-xs font-semibold text-stone-700 hover:border-accent disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200"
+              >
+                {aiStatusLoading ? 'Checking...' : 'Refresh'}
+              </button>
+            </div>
+            <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
+              Active providers: {aiProviderStatus.activeCount}
+              {aiProviderStatus.providerOrder.length > 0
+                ? ` | Order: ${aiProviderStatus.providerOrder.join(' -> ')}`
+                : ''}
+            </p>
+            <p className={`mb-3 text-xs font-medium ${currentWorkingClass}`}>
+              Now active: {currentWorkingProvider || 'none'}
+              {currentWorkingModel ? ` / ${currentWorkingModel}` : ''}
+            </p>
+            <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              {['openrouter', 'gemini', 'groq', 'ollama', 'hf', 'openai'].map((provider) => {
+                const status = aiProviderStatus.providers?.[provider] || {};
+                const configured = Boolean(status.configured);
+                const reachable = provider === 'ollama' ? Boolean(status.reachable) : true;
+                const ready = configured && reachable;
+
+                const className = ready
+                  ? 'border-green-200 text-green-700 dark:border-green-900 dark:text-green-300'
+                  : 'border-stone-200 text-stone-500 dark:border-neutral-700 dark:text-neutral-400';
+
+                return (
+                  <div key={provider} className={`rounded border px-2 py-1 ${className}`}>
+                    <p className="font-semibold capitalize">{provider}</p>
+                    <p>{ready ? 'ready' : configured ? 'configured' : 'not configured'}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Trending News Finder</h3>
             <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
               Find trending topics, headline ideas, and SEO keywords from a seed term.
@@ -625,6 +962,33 @@ export default function NewPostPage() {
               placeholder="Example: Sri Lanka or AI"
               className="form-input mb-3"
             />
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Focus Region
+            </label>
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setTrendRegion('Sri Lanka')}
+                className={`rounded border px-2 py-1 text-xs font-semibold ${
+                  trendRegion === 'Sri Lanka'
+                    ? 'border-accent text-accent'
+                    : 'border-stone-200 text-stone-600 dark:border-neutral-700 dark:text-neutral-300'
+                }`}
+              >
+                Sri Lanka
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrendRegion('Worldwide')}
+                className={`rounded border px-2 py-1 text-xs font-semibold ${
+                  trendRegion === 'Worldwide'
+                    ? 'border-accent text-accent'
+                    : 'border-stone-200 text-stone-600 dark:border-neutral-700 dark:text-neutral-300'
+                }`}
+              >
+                Global
+              </button>
+            </div>
             <button
               type="button"
               onClick={handleFindTrending}
@@ -645,7 +1009,7 @@ export default function NewPostPage() {
                     </p>
                     <ul className="space-y-1 text-stone-600 dark:text-neutral-300">
                       {trendData.trendingTopics.slice(0, 5).map((item) => (
-                        <li key={`topic-${item}`} className="flex gap-1">
+                        <li key={`topic-${item}`} className="flex flex-col gap-1 sm:flex-row">
                           <button
                             type="button"
                             onClick={() => setAiTopic(item)}
@@ -657,7 +1021,7 @@ export default function NewPostPage() {
                             type="button"
                             onClick={() => handleGenerateWithAI(item)}
                             disabled={aiGenerating}
-                            className="rounded border border-stone-200 px-2 py-1 font-semibold text-stone-700 hover:border-accent disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200"
+                            className="w-full rounded border border-stone-200 px-2 py-1 font-semibold text-stone-700 hover:border-accent disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 sm:w-auto"
                           >
                             Generate Now
                           </button>
@@ -759,7 +1123,7 @@ export default function NewPostPage() {
 
             <button
               type="button"
-              onClick={handleGenerateWithAI}
+              onClick={() => handleGenerateWithAI()}
               disabled={aiGenerating}
               className="btn-primary w-full py-2.5 disabled:opacity-40"
             >
@@ -769,6 +1133,179 @@ export default function NewPostPage() {
               <p className="mt-2 text-center text-xs text-stone-500 dark:text-neutral-400">
                 Auto retry active if minimum word count is not met.
               </p>
+            )}
+            {!aiGenerating && (aiGenerationMeta.provider || aiGenerationMeta.model) && (
+              <p className="mt-2 text-center text-xs text-stone-500 dark:text-neutral-400">
+                Generated by {aiGenerationMeta.provider || 'unknown provider'}
+                {aiGenerationMeta.model ? ` / ${aiGenerationMeta.model}` : ''}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">AI Assistant Panel</h3>
+            <p className="mb-3 text-xs text-stone-500 dark:text-neutral-400">
+              Run all AI checks in one click: Headline A/B, Internal Links, SEO Auto-Fix, and
+              Fact-Check Guard.
+            </p>
+            <button
+              type="button"
+              onClick={handleRunAiAssistant}
+              disabled={assistantRunning}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {assistantRunning ? 'Running AI Assistant...' : 'Run All AI Checks'}
+            </button>
+            {assistantStep && (
+              <p className="mt-2 text-center text-xs text-stone-500 dark:text-neutral-400">
+                {assistantStep}
+              </p>
+            )}
+            <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+              {[
+                ['Headlines', assistantStatus.headline],
+                ['Links', assistantStatus.links],
+                ['SEO', assistantStatus.seo],
+                ['Fact Check', assistantStatus.fact],
+              ].map(([label, status]) => {
+                const statusClass =
+                  status === 'success'
+                    ? 'border-green-200 text-green-700 dark:border-green-900 dark:text-green-300'
+                    : status === 'error'
+                      ? 'border-red-200 text-red-700 dark:border-red-900 dark:text-red-300'
+                      : status === 'running'
+                        ? 'border-amber-200 text-amber-700 dark:border-amber-900 dark:text-amber-300'
+                        : 'border-stone-200 text-stone-500 dark:border-neutral-700 dark:text-neutral-400';
+
+                return (
+                  <div
+                    key={label}
+                    className={`rounded border px-2 py-1 font-medium ${statusClass}`}
+                  >
+                    {label}: {status}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">Headline A/B Generator</h3>
+            <button
+              type="button"
+              onClick={handleGenerateHeadlineIdeas}
+              disabled={headlineLoading}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {headlineLoading ? 'Generating Headlines...' : 'Generate Headline Ideas'}
+            </button>
+            {headlineIdeas.length > 0 && (
+              <ul className="mt-3 space-y-1 text-xs">
+                {headlineIdeas.slice(0, 8).map((item) => (
+                  <li key={`ab-${item}`}>
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, title: item }))}
+                      className="w-full rounded border border-stone-200 px-2 py-1 text-left text-stone-700 hover:border-accent dark:border-neutral-700 dark:text-neutral-200"
+                    >
+                      {item}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">Internal Link Recommender</h3>
+            <button
+              type="button"
+              onClick={handleRecommendInternalLinks}
+              disabled={linkLoading}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {linkLoading ? 'Finding Links...' : 'Recommend Internal Links'}
+            </button>
+            {linkSuggestions.length > 0 && (
+              <ul className="mt-3 space-y-1 text-xs">
+                {linkSuggestions.map((item, idx) => (
+                  <li
+                    key={`link-${item.slug}-${idx}`}
+                    className="rounded border border-stone-200 p-2 dark:border-neutral-700"
+                  >
+                    <p className="font-semibold text-stone-700 dark:text-neutral-200">
+                      {item.anchorText}
+                    </p>
+                    <p className="text-stone-500 dark:text-neutral-400">{item.url}</p>
+                    {item.reason && (
+                      <p className="mt-1 text-stone-500 dark:text-neutral-400">{item.reason}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          content: `${f.content || ''}<p><a href="${item.url}">${item.anchorText}</a></p>`,
+                        }))
+                      }
+                      className="mt-2 rounded border border-stone-300 px-2 py-1 font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                    >
+                      Add Link To Content
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">SEO Auto-Fix Agent</h3>
+            <button
+              type="button"
+              onClick={handleSeoAutoFix}
+              disabled={seoFixLoading}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {seoFixLoading ? 'Optimizing SEO...' : 'Auto-Fix SEO Fields'}
+            </button>
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">Fact-Check Guard</h3>
+            <button
+              type="button"
+              onClick={handleFactCheckGuard}
+              disabled={factCheckLoading}
+              className="btn-secondary w-full py-2.5 disabled:opacity-40"
+            >
+              {factCheckLoading ? 'Checking Facts...' : 'Run Fact-Check Guard'}
+            </button>
+
+            {factCheckReport.riskScore !== null && (
+              <div className="mt-3 text-xs">
+                <p className="font-semibold text-stone-700 dark:text-neutral-200">
+                  Risk Score: {factCheckReport.riskScore}/100
+                </p>
+                {factCheckReport.summary && (
+                  <p className="mt-1 text-stone-600 dark:text-neutral-300">
+                    {factCheckReport.summary}
+                  </p>
+                )}
+                {factCheckReport.flags.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {factCheckReport.flags.slice(0, 6).map((flag, idx) => (
+                      <li
+                        key={`fact-flag-${idx}`}
+                        className="rounded border border-stone-200 p-2 text-stone-600 dark:border-neutral-700 dark:text-neutral-300"
+                      >
+                        <p className="font-semibold">{flag.claim}</p>
+                        <p>{flag.issue}</p>
+                        {flag.suggestion && <p className="mt-1">Suggestion: {flag.suggestion}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
 
@@ -808,11 +1345,11 @@ export default function NewPostPage() {
                 Last local save:{' '}
                 {lastSavedAt ? new Date(lastSavedAt).toLocaleTimeString() : 'Not saved yet'}
               </p>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={() => saveDraftSnapshot(true)}
-                  className="flex-1 rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+                  className="rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
                 >
                   Save Now
                 </button>
@@ -823,7 +1360,7 @@ export default function NewPostPage() {
                     setLastSavedAt(null);
                     toast.success('Local draft cleared.');
                   }}
-                  className="flex-1 rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+                  className="rounded border border-stone-300 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
                 >
                   Clear Local Draft
                 </button>

@@ -53,8 +53,24 @@ Set these Environment Variables in Vercel Project Settings before deploying:
 - APPWRITE_API_KEY
 - APPWRITE_DATABASE_ID
 - APPWRITE_COMMENTS_COLLECTION_ID
+- AI_PROVIDER_ORDER (optional, default: openrouter,gemini,groq,ollama,hf,openai)
+- OPENROUTER_FREE_AVAILABLE (optional, default: true)
+- OPENROUTER_API_KEY (priority 1)
+- OPENROUTER_FREE_MODEL (optional, default: google/gemma-2-9b-it:free)
+- OPENROUTER_MODEL (optional backup model)
+- GEMINI_API_KEY (optional fallback, priority 2)
+- GEMINI_MODEL (optional, default: gemini-1.5-flash)
+- GROQ_API_KEY (optional fallback, priority 3)
+- GROQ_MODEL (optional, default: llama-3.1-8b-instant)
+- OLLAMA_ENABLED (optional, default: true)
+- OLLAMA_BASE_URL (optional, default: http://127.0.0.1:11434)
+- OLLAMA_MODEL (optional, default: llama3.1:8b)
 - HF_TOKEN
 - HF_MODEL (optional, default: deepseek-ai/DeepSeek-V3-0324:novita)
+- OPENAI_API_KEY (optional fallback)
+- OPENAI_MODEL (optional, default: gpt-4o-mini)
+- OPENROUTER_API_KEY (optional fallback)
+- OPENROUTER_MODEL (optional, default: openai/gpt-4o-mini)
 
 APPWRITE_API_KEY should have Database read/write permission for the comments collection.
 

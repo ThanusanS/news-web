@@ -1,3 +1,5 @@
+import { chatCompletionsWithFallback, toAiHttpError } from '../../../lib/ai/fallback';
+
 const rateLimitMap = new Map();
 
 function rateLimit(ip, max = 15, windowMs = 10 * 60 * 1000) {
@@ -40,9 +42,26 @@ function parseJsonSafely(raw) {
 
 function normalizeStringList(value, limit = 8) {
   if (!Array.isArray(value)) return [];
+
+  const pickText = (item) => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object') {
+      const candidate =
+        item.topic ||
+        item.title ||
+        item.headline ||
+        item.keyword ||
+        item.text ||
+        item.name ||
+        item.label;
+      if (typeof candidate === 'string') return candidate;
+    }
+    return String(item || '');
+  };
+
   return value
-    .map((item) => String(item || '').trim())
-    .filter(Boolean)
+    .map((item) => pickText(item).trim())
+    .filter((item) => Boolean(item) && item !== '[object Object]')
     .slice(0, limit);
 }
 
@@ -50,7 +69,7 @@ function buildPrompt(seed, region) {
   return [
     'You are a newsroom trend analyst and SEO strategist.',
     `Find trending news opportunities for: "${seed}".`,
-    `Region focus: ${region || 'Sri Lanka and global relevance'}.`,
+    `Region focus: ${region || 'Worldwide (global news coverage across all major regions)'}.`,
     'Return ONLY valid JSON in this exact format:',
     '{',
     '  "trending_topics": [""],',
@@ -88,53 +107,28 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Too many requests. Try again later.' });
   }
 
-  const apiKey = process.env.HF_TOKEN;
-  const model = process.env.HF_MODEL || 'deepseek-ai/DeepSeek-V3-0324:novita';
-  if (!apiKey) {
-    return res
-      .status(500)
-      .json({ error: 'Missing HF_TOKEN. Add it to your environment variables first.' });
-  }
-
   try {
-    const { seed, region = 'Sri Lanka' } = req.body || {};
+    const { seed, region = 'Worldwide' } = req.body || {};
     const safeSeed = String(seed || '').trim();
     if (!safeSeed) {
       return res.status(400).json({ error: 'Seed input is required.' });
     }
 
-    const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.6,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert editor. Return only valid JSON.',
-          },
-          {
-            role: 'user',
-            content: buildPrompt(safeSeed, String(region || '').trim()),
-          },
-        ],
-      }),
+    const completion = await chatCompletionsWithFallback({
+      temperature: 0.6,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert editor. Return only valid JSON.',
+        },
+        {
+          role: 'user',
+          content: buildPrompt(safeSeed, String(region || '').trim()),
+        },
+      ],
     });
 
-    if (!response.ok) {
-      const details = await response.text();
-      return res.status(502).json({
-        error: 'Hugging Face provider error while finding trends.',
-        details: details.slice(0, 400),
-      });
-    }
-
-    const data = await response.json();
-    const parsed = parseJsonSafely(data?.choices?.[0]?.message?.content);
+    const parsed = parseJsonSafely(completion?.content);
 
     const trendingTopics = normalizeStringList(parsed.trending_topics, 8);
     const headlineIdeas = normalizeStringList(parsed.headline_ideas, 8);
@@ -151,9 +145,10 @@ export default async function handler(req, res) {
       keywords,
     });
   } catch (err) {
-    return res.status(500).json({
-      error: 'Failed to find trending ideas',
-      details: err?.message || 'Unknown error',
+    const aiError = toAiHttpError(err, 'Failed to find trending ideas');
+    return res.status(aiError.status).json({
+      error: aiError.error,
+      details: aiError.details,
     });
   }
 }

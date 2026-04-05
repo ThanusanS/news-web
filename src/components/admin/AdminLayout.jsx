@@ -21,6 +21,8 @@ import {
   FiX,
   FiChevronRight,
   FiBell,
+  FiSun,
+  FiMoon,
 } from 'react-icons/fi';
 import { ADMIN_NAV } from '../../utils/constants';
 
@@ -43,6 +45,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   function handleMenuToggle() {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -57,6 +60,15 @@ export default function AdminLayout({ children, title = 'Dashboard', description
   }, [user, loading]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const saved = localStorage.getItem('admin-theme') || 'light';
+    const darkEnabled = saved === 'dark';
+    document.documentElement.classList.toggle('dark', darkEnabled);
+    setIsDarkMode(darkEnabled);
+  }, []);
+
+  useEffect(() => {
     setMobileOpen(false);
   }, [router.pathname]);
 
@@ -67,6 +79,17 @@ export default function AdminLayout({ children, title = 'Dashboard', description
       document.body.style.overflow = '';
     };
   }, [mobileOpen]);
+
+  function toggleTheme() {
+    if (typeof document === 'undefined') return;
+
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('admin-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }
 
   if (loading) {
     return (
@@ -214,6 +237,15 @@ export default function AdminLayout({ children, title = 'Dashboard', description
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-lg p-2 text-stone-400 transition-all hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? <FiSun size={17} /> : <FiMoon size={17} />}
+            </button>
             <button className="relative hidden rounded-lg p-2 text-stone-400 transition-all hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 sm:inline-flex">
               <FiBell size={17} />
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent" />
