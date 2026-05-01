@@ -1,4 +1,4 @@
-# CeylonUpdates.com v2.0 — Industry-Level Setup Guide
+# CeylonUpdates.me v2.0 — Industry-Level Setup Guide
 
 ## Quick Start
 

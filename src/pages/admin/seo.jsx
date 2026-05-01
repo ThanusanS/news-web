@@ -7,15 +7,15 @@ import { FiCheck, FiMap, FiCpu, FiBarChart2 } from 'react-icons/fi';
 export default function SeoPage() {
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
-    siteTitle: 'CeylonUpdates.com — Latest Sri Lanka News, AI & Tech',
+    siteTitle: 'CeylonUpdates.me — Latest Sri Lanka News, AI & Tech',
     siteDescription:
-      'Latest Sri Lanka news, AI tutorials, tech updates and programming guides. Trusted by 100K monthly readers.',
+      'Latest Sri Lanka news, AI & Innovation, tech updates and programming guides. Trusted by 100K monthly readers.',
     gaId: '',
     adsenseId: '',
     twitterHandle: '@CeylonUpdates',
     fbAppId: '',
     indexing: true,
-    canonicalDomain: 'https://ceylonupdates.com',
+    canonicalDomain: 'https://www.ceylonupdates.me',
   });
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -150,7 +150,13 @@ export default function SeoPage() {
           </div>
 
           <button type="submit" className="btn-primary w-full py-2.5">
-            {saved ? <span className="inline-flex items-center gap-1.5"><FiCheck size={14} /> Saved</span> : 'Save SEO Settings'}
+            {saved ? (
+              <span className="inline-flex items-center gap-1.5">
+                <FiCheck size={14} /> Saved
+              </span>
+            ) : (
+              'Save SEO Settings'
+            )}
           </button>
         </form>
 
@@ -176,16 +182,30 @@ export default function SeoPage() {
             <h3 className="mb-3 text-sm font-semibold">Generate Files</h3>
             <div className="space-y-2">
               {[
-                { label: 'Generate sitemap.xml', note: 'Auto-includes all published URLs', Icon: FiMap },
-                { label: 'Generate robots.txt', note: 'Blocks admin, allows all crawlers', Icon: FiCpu },
-                { label: 'Submit to Search Console', note: 'Ping Google after new posts', Icon: FiBarChart2 },
+                {
+                  label: 'Generate sitemap.xml',
+                  note: 'Auto-includes all published URLs',
+                  Icon: FiMap,
+                },
+                {
+                  label: 'Generate robots.txt',
+                  note: 'Blocks admin, allows all crawlers',
+                  Icon: FiCpu,
+                },
+                {
+                  label: 'Submit to Search Console',
+                  note: 'Ping Google after new posts',
+                  Icon: FiBarChart2,
+                },
               ].map((item) => (
                 <button
                   key={item.label}
                   onClick={() => toast.success(`${item.label} — done!`)}
                   className="group w-full rounded-lg bg-stone-50 p-3 text-left transition-all hover:bg-accent hover:text-white dark:bg-neutral-800"
                 >
-                  <div className="text-sm font-medium inline-flex items-center gap-2"><item.Icon size={14} /> {item.label}</div>
+                  <div className="inline-flex items-center gap-2 text-sm font-medium">
+                    <item.Icon size={14} /> {item.label}
+                  </div>
                   <div className="mt-0.5 text-xs text-stone-400 group-hover:text-white/70">
                     {item.note}
                   </div>

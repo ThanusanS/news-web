@@ -94,9 +94,9 @@ export default function CategoryPage({ articles, trendingArticles, category, tot
   return (
     <>
       <NextSeo
-        title={`${meta.title} | CeylonUpdates.com`}
+        title={`${meta.title} | CeylonUpdates.me`}
         description={meta.description}
-        canonical={`https://ceylonupdates.com/category/${category}`}
+        canonical={`https://www.ceylonupdates.me/category/${category}`}
       />
 
       <Layout>

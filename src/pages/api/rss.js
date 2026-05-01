@@ -42,8 +42,8 @@ export default async function handler(req, res) {
       <link>${SITE_CONFIG.url}</link>
     </image>
     <copyright>Copyright ${new Date().getFullYear()} ${SITE_CONFIG.name}</copyright>
-    <managingEditor>editor@ceylonupdates.com (CeylonUpdates Editor)</managingEditor>
-    <webMaster>tech@ceylonupdates.com (CeylonUpdates Tech)</webMaster>
+    <managingEditor>editor@ceylonupdates.me (CeylonUpdates Editor)</managingEditor>
+    <webMaster>tech@ceylonupdates.me (CeylonUpdates Tech)</webMaster>
     <ttl>60</ttl>
     ${items}
   </channel>

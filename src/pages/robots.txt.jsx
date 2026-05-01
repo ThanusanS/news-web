@@ -1,6 +1,8 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
 
-function RobotsPage() { return null; }
+function RobotsPage() {
+  return null;
+}
 
 export async function getServerSideProps({ res }) {
   const robots = `User-agent: *

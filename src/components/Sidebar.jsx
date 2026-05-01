@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { FiCompass, FiTrendingUp } from 'react-icons/fi';
 import AdSense from './AdSense';
+import { getCategoryLabel } from '../utils/constants';
 
 export default function Sidebar({ trendingArticles = [] }) {
   const topicLinks = [
     { label: 'Sri Lanka', href: '/category/sri-lanka' },
     { label: 'World', href: '/category/world' },
-    { label: 'Tech', href: '/category/tech' },
-    { label: 'AI & Innovation', href: '/category/ai-innovation' },
+    { label: 'Tech', href: '/category/tech-news' },
+    { label: 'AI & Innovation', href: '/category/ai-tutorials' },
     { label: 'Jobs & Careers', href: '/category/jobs-careers' },
     { label: 'Education', href: '/category/education' },
     { label: 'Sports', href: '/category/sports' },
@@ -37,7 +38,7 @@ export default function Sidebar({ trendingArticles = [] }) {
                 </span>
                 <div>
                   <div className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-accent">
-                    {a.category?.replace(/-/g, ' ')}
+                    {getCategoryLabel(a.category)}
                   </div>
                   <h4 className="line-clamp-2 font-head text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-accent dark:text-neutral-100">
                     {a.title}

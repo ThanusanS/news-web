@@ -67,6 +67,7 @@ export default function AdminLayout({ children, title = 'Dashboard', description
     document.documentElement.classList.toggle('dark', darkEnabled);
     setIsDarkMode(darkEnabled);
   }, []);
+  
 
   useEffect(() => {
     setMobileOpen(false);

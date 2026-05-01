@@ -5,19 +5,19 @@ import { FiMail, FiBriefcase, FiFileText, FiUsers } from 'react-icons/fi';
 const CONTACT_CHANNELS = [
   {
     title: 'Editorial',
-    email: 'editor@ceylonupdates.com',
+    email: 'editor@ceylonupdates.me',
     description: 'News tips, corrections, and editorial feedback.',
     icon: FiFileText,
   },
   {
     title: 'Advertising',
-    email: 'ads@ceylonupdates.com',
+    email: 'ads@ceylonupdates.me',
     description: 'Sponsored content, banner ads, and media kit requests.',
     icon: FiBriefcase,
   },
   {
     title: 'Support',
-    email: 'support@ceylonupdates.com',
+    email: 'support@ceylonupdates.me',
     description: 'Technical issues, account support, and general help.',
     icon: FiUsers,
   },
@@ -27,9 +27,9 @@ export default function ContactPage() {
   return (
     <>
       <NextSeo
-        title="Contact Us | CeylonUpdates.com"
+        title="Contact Us | CeylonUpdates.me"
         description="Contact the CeylonUpdates team for editorial inquiries, ad partnerships, or support."
-        canonical="https://ceylonupdates.com/contact"
+        canonical="https://www.ceylonupdates.me/contact"
       />
 
       <Layout>
@@ -78,11 +78,11 @@ export default function ContactPage() {
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <a href="mailto:editor@ceylonupdates.com" className="btn-primary inline-flex">
+              <a href="mailto:editor@ceylonupdates.me" className="btn-primary inline-flex">
                 Email Editorial
               </a>
               <a
-                href="mailto:support@ceylonupdates.com"
+                href="mailto:support@ceylonupdates.me"
                 className="inline-flex rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
               >
                 Email Support

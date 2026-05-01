@@ -3,17 +3,18 @@ import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FiFileText } from 'react-icons/fi';
 import { estimateReadTime } from '../lib/seo';
+import { getCategoryLabel } from '../utils/constants';
 
 const CATEGORY_COLORS = {
-  'sri-lanka': 'bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-200',
-  'tech-news': 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200',
-  sports: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200',
-  'ai-tutorials': 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200',
-  'jobs-careers': 'bg-orange-100 text-orange-900 dark:bg-orange-900/30 dark:text-orange-200',
-  education: 'bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-200',
-  programming: 'bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-200',
-  world: 'bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-200',
-  business: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-900/30 dark:text-yellow-200',
+  'sri-lanka': 'bg-red-100 text-red-900 dark:bg-red-600/50 dark:text-red-50',
+  'tech-news': 'bg-blue-100 text-blue-900 dark:bg-blue-600/50 dark:text-blue-50',
+  sports: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-600/50 dark:text-emerald-50',
+  'ai-tutorials': 'bg-indigo-100 text-indigo-900 dark:bg-indigo-600/50 dark:text-indigo-50',
+  'jobs-careers': 'bg-orange-100 text-orange-900 dark:bg-orange-600/50 dark:text-orange-50',
+  education: 'bg-sky-100 text-sky-900 dark:bg-sky-600/50 dark:text-sky-50',
+  programming: 'bg-green-100 text-green-900 dark:bg-green-600/50 dark:text-green-50',
+  world: 'bg-purple-100 text-purple-900 dark:bg-purple-600/50 dark:text-purple-50',
+  business: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-600/50 dark:text-yellow-50',
 };
 
 export default function ArticleCard({ article, variant = 'default' }) {
@@ -45,9 +46,9 @@ export default function ArticleCard({ article, variant = 'default' }) {
         )}
         <div>
           <div
-            className={`mb-1 text-[10px] font-bold uppercase tracking-widest ${catColor} inline-block rounded px-1.5 py-0.5`}
+            className={`mb-1 text-[10px] font-bold uppercase tracking-widest ${catColor} inline-block rounded px-1.5 py-0.5 ring-1 ring-black/5 backdrop-blur-sm dark:ring-white/10`}
           >
-            {article.category?.replace('-', ' ')}
+            {getCategoryLabel(article.category)}
           </div>
           <h3 className="line-clamp-2 font-head text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-accent dark:text-neutral-100">
             {article.title}
@@ -76,9 +77,9 @@ export default function ArticleCard({ article, variant = 'default' }) {
           </div>
         )}
         <div
-          className={`absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${catColor}`}
+          className={`absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${catColor} ring-1 ring-black/5 backdrop-blur-sm dark:ring-white/10`}
         >
-          {article.category?.replace(/-/g, ' ')}
+          {getCategoryLabel(article.category)}
         </div>
       </div>
       <div className="flex flex-1 flex-col p-3.5 md:p-4">

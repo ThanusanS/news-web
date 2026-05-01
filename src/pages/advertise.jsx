@@ -13,9 +13,9 @@ export default function AdvertisePage() {
   return (
     <>
       <NextSeo
-        title="Advertise With Us | CeylonUpdates.com"
-        description="Partner with CeylonUpdates.com to reach engaged readers across Sri Lanka and South Asia through display ads and sponsorships."
-        canonical="https://ceylonupdates.com/advertise"
+        title="Advertise With Us | CeylonUpdates.me"
+        description="Partner with CeylonUpdates.me to reach engaged readers across Sri Lanka and South Asia through display ads and sponsorships."
+        canonical="https://www.ceylonupdates.me/advertise"
       />
 
       <Layout>
@@ -30,7 +30,7 @@ export default function AdvertisePage() {
 
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
             <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100 inline-flex items-center gap-2">
+              <h2 className="inline-flex items-center gap-2 font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
                 <FiUsers size={18} className="text-accent" /> Audience Snapshot
               </h2>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-600 dark:text-neutral-400">
@@ -41,7 +41,7 @@ export default function AdvertisePage() {
             </section>
 
             <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100 inline-flex items-center gap-2">
+              <h2 className="inline-flex items-center gap-2 font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
                 <FiBarChart2 size={18} className="text-accent" /> Ad Options
               </h2>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-600 dark:text-neutral-400">
@@ -53,13 +53,15 @@ export default function AdvertisePage() {
           </div>
 
           <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">Request Our Media Kit</h2>
+            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
+              Request Our Media Kit
+            </h2>
             <p className="mt-2 text-sm text-stone-600 dark:text-neutral-400">
               Share your campaign goals, target audience, budget range, and preferred timeline. Our
               team will respond with recommended packages.
             </p>
             <a
-              href="mailto:ads@ceylonupdates.com?subject=Advertising%20Inquiry"
+              href="mailto:ads@ceylonupdates.me?subject=Advertising%20Inquiry"
               className="mt-4 inline-flex items-center gap-2 rounded bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
             >
               <FiMail size={14} /> Contact Advertising Team

@@ -1,31 +1,43 @@
 // Dynamic Open Graph image generator
 // Returns SVG-based OG image for social sharing
 export default function handler(req, res) {
-  const { title = 'CeylonUpdates.com', category = 'News' } = req.query;
+  const { title = 'CeylonUpdates.me', category = 'News' } = req.query;
 
-  const safeTitle = String(title).slice(0, 80).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const safeCat = String(category).replace(/-/g, ' ').toUpperCase().slice(0, 30);
+  const safeTitle = String(title)
+    .slice(0, 80)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const categoryLabelMap = {
+    'ai-tutorials': 'AI & Innovation',
+  };
+  const rawCategory = String(category || 'News');
+  const labelSource = categoryLabelMap[rawCategory] || rawCategory.replace(/-/g, ' ');
+  const safeCat = String(labelSource).toUpperCase().slice(0, 30);
 
   const catColors = {
     'sri lanka': '#C8102E',
     'tech news': '#1A3A5C',
     sports: '#047857',
-    'ai tutorials': '#4338CA',
+    'ai-tutorials': '#4338CA',
     'jobs careers': '#C2410C',
     education: '#0369A1',
-    'programming': '#15803D',
-    'world': '#7C3AED',
-    'business': '#B45309',
+    programming: '#15803D',
+    world: '#7C3AED',
+    business: '#B45309',
   };
-  const bgColor = catColors[category.toLowerCase().replace(/-/g, ' ')] || '#C8102E';
+  const normalizedKey = rawCategory.toLowerCase();
+  const bgColor = catColors[normalizedKey] || '#C8102E';
 
   // Word-wrap title for SVG (max ~45 chars per line)
   const words = safeTitle.split(' ');
   const lines = [];
   let line = '';
   for (const word of words) {
-    if ((line + ' ' + word).length > 44) { lines.push(line.trim()); line = word; }
-    else line += ' ' + word;
+    if ((line + ' ' + word).length > 44) {
+      lines.push(line.trim());
+      line = word;
+    } else line += ' ' + word;
   }
   if (line) lines.push(line.trim());
   const titleLines = lines.slice(0, 3);
@@ -63,7 +75,7 @@ export default function handler(req, res) {
   ${titleLines.map((line, i) => `<text x="80" y="${310 + i * 72}" font-family="Georgia, serif" font-size="58" font-weight="700" fill="white" opacity="${1 - i * 0.05}">${line}</text>`).join('')}
 
   <!-- Site name -->
-  <text x="80" y="570" font-family="Georgia, serif" font-size="28" font-weight="900" fill="white" opacity="0.9">Ceylon<tspan fill="${bgColor === '#C8102E' ? '#FF6B6B' : '#FF6B35'}">Updates</tspan>.com</text>
+  <text x="80" y="570" font-family="Georgia, serif" font-size="28" font-weight="900" fill="white" opacity="0.9">Ceylon<tspan fill="${bgColor === '#C8102E' ? '#FF6B6B' : '#FF6B35'}">Updates</tspan>.me</text>
   <text x="80" y="600" font-family="Arial, sans-serif" font-size="16" fill="white" opacity="0.5">Sri Lanka News · AI · Tech · Programming</text>
 
   <!-- Right decoration -->

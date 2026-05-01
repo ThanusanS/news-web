@@ -840,7 +840,7 @@ export default function EditPostPage() {
                 value={form.canonicalUrl || ''}
                 onChange={set('canonicalUrl')}
                 className="form-input"
-                placeholder="https://ceylonupdates.com/your-article"
+                placeholder="https://www.ceylonupdates.me/your-article"
               />
             </div>
           </div>

@@ -6,29 +6,35 @@ import AdSense from '../components/AdSense';
 import Link from 'next/link';
 import { FiCpu, FiFileText, FiActivity, FiBriefcase, FiBookOpen } from 'react-icons/fi';
 import { getArticles, getTrendingArticles } from '../lib/appwrite';
+import { getCategoryLabel } from '../utils/constants';
 
-export default function HomePage({ latestArticles, trendingArticles, heroArticle, sideArticles }) {
+export default function HomePage({
+  latestArticles,
+  trendingArticles,
+  heroArticle,
+  sideArticles,
+  sectionArticles,
+}) {
   const getSectionArticles = (category) => {
-    const exactMatches = latestArticles.filter((article) => article.category === category);
-    if (exactMatches.length >= 3) return exactMatches.slice(0, 3);
-
-    const fallback = latestArticles.filter((article) => article.category !== category);
-    return [...exactMatches, ...fallback].slice(0, 3);
+    return sectionArticles?.[category] || [];
   };
 
   return (
     <>
       <NextSeo
-        title="CeylonUpdates.com — Latest Sri Lanka News, AI Tutorials & Tech"
-        description="Latest Sri Lanka news, AI tutorials, tech updates and programming guides. Your #1 source for fast, reliable news and in-depth tech content. Updated 5× daily."
-        canonical="https://ceylonupdates.com"
+        title="CeylonUpdates.me — Latest Sri Lanka News, AI & Innovation & Tech"
+        description="Latest Sri Lanka news, AI & Innovation, tech updates and programming guides. Your #1 source for fast, reliable news and in-depth tech content. Updated 5× daily."
+        canonical="https://www.ceylonupdates.me"
         openGraph={{
           type: 'website',
-          url: 'https://ceylonupdates.com',
-          title: 'CeylonUpdates.com — Latest Sri Lanka News, AI & Tech',
-          description: 'Latest Sri Lanka news, AI tutorials, tech updates and programming guides.',
-          images: [{ url: 'https://ceylonupdates.com/og-default.jpg', width: 1200, height: 630 }],
-          site_name: 'CeylonUpdates.com',
+          url: 'https://www.ceylonupdates.me',
+          title: 'CeylonUpdates.me — Latest Sri Lanka News, AI & Tech',
+          description:
+            'Latest Sri Lanka news, AI & Innovation, tech updates and programming guides.',
+          images: [
+            { url: 'https://www.ceylonupdates.me/og-default.jpg', width: 1200, height: 630 },
+          ],
+          site_name: 'CeylonUpdates.me',
         }}
         twitter={{ cardType: 'summary_large_image', site: '@CeylonUpdates' }}
       />
@@ -53,7 +59,7 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
               <div className="hero-overlay absolute inset-0" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <span className="mb-3 inline-block rounded bg-accent px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white">
-                  {heroArticle?.category?.replace(/-/g, ' ') || 'Sri Lanka'}
+                  {heroArticle?.category ? getCategoryLabel(heroArticle.category) : 'Sri Lanka'}
                 </span>
                 <h1 className="mb-2 font-head text-2xl font-black leading-snug text-white md:text-3xl">
                   {heroArticle?.title || 'Welcome to CeylonUpdates — Your Daily News & Tech Source'}
@@ -86,7 +92,7 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                   </div>
                   <div>
                     <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-accent">
-                      {a.category?.replace(/-/g, ' ')}
+                      {getCategoryLabel(a.category)}
                     </div>
                     <h3 className="line-clamp-2 font-head text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-accent dark:text-neutral-100">
                       {a.title}
@@ -202,12 +208,9 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {latestArticles
-                    .filter((a) => a.category === 'ai-tutorials')
-                    .slice(0, 3)
-                    .map((a) => (
-                      <ArticleCard key={a.$id} article={a} />
-                    ))}
+                  {getSectionArticles('ai-tutorials').map((a) => (
+                    <ArticleCard key={a.$id} article={a} />
+                  ))}
                 </div>
               </div>
 
@@ -286,9 +289,46 @@ export default function HomePage({ latestArticles, trendingArticles, heroArticle
 
 export async function getStaticProps() {
   try {
-    const [latestRes, trendingRes] = await Promise.allSettled([
-      getArticles({ limit: 12 }),
+    const CATEGORY_ALIASES = {
+      'ai-tutorials': ['ai-innovation'],
+      'tech-news': ['tech'],
+    };
+
+    const fetchCategoryArticles = async (category) => {
+      const targets = [category, ...(CATEGORY_ALIASES[category] || [])];
+      const results = await Promise.allSettled(
+        targets.map((value) => getArticles({ category: value, limit: 6 }))
+      );
+
+      const seen = new Set();
+      const merged = [];
+      for (const res of results) {
+        if (res.status !== 'fulfilled') continue;
+        for (const doc of res.value.documents || []) {
+          const key = doc.$id || doc.slug;
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          merged.push(doc);
+        }
+      }
+
+      return merged.slice(0, 3);
+    };
+
+    const categories = [
+      'sri-lanka',
+      'world',
+      'tech-news',
+      'ai-tutorials',
+      'sports',
+      'jobs-careers',
+      'education',
+    ];
+
+    const [latestRes, trendingRes, ...categoryRes] = await Promise.allSettled([
+      getArticles({ limit: 8 }),
       getTrendingArticles(6),
+      ...categories.map((category) => fetchCategoryArticles(category)),
     ]);
 
     const latestArticles = latestRes.status === 'fulfilled' ? latestRes.value.documents : [];
@@ -296,12 +336,19 @@ export async function getStaticProps() {
     const heroArticle = latestArticles.find((a) => a?.featuredImage) || latestArticles[0] || null;
     const sideArticles = latestArticles.filter((a) => a?.$id !== heroArticle?.$id).slice(0, 4);
 
+    const sectionArticles = categories.reduce((acc, category, index) => {
+      const res = categoryRes[index];
+      acc[category] = res?.status === 'fulfilled' ? res.value : [];
+      return acc;
+    }, {});
+
     return {
       props: {
         latestArticles,
         trendingArticles,
         heroArticle,
         sideArticles,
+        sectionArticles,
       },
       revalidate: 60,
     };
@@ -312,6 +359,7 @@ export async function getStaticProps() {
         trendingArticles: [],
         heroArticle: null,
         sideArticles: [],
+        sectionArticles: {},
       },
       revalidate: 60,
     };

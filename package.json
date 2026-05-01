@@ -2,7 +2,7 @@
   "name": "ceylonupdates",
   "version": "2.0.0",
   "private": true,
-  "description": "CeylonUpdates.com — Industry-level Sri Lanka News, AI & Tech Platform",
+  "description": "CeylonUpdates.me — Industry-level Sri Lanka News, AI & Tech Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build --no-lint",

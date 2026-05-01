@@ -74,8 +74,8 @@ export default function Footer() {
               Ceylon<span className="text-stone-900 dark:text-neutral-100">Updates</span>
             </Link>
             <p className="mb-4 text-sm leading-relaxed text-stone-500 dark:text-neutral-500">
-              Sri Lanka's fastest-growing news and tech platform. Reliable news, AI tutorials, and
-              programming guides for readers across South Asia.
+              Sri Lanka's fastest-growing news and tech platform. Reliable news, AI & Innovation,
+              and programming guides for readers across South Asia.
             </p>
             <div className="flex gap-2">
               {[
@@ -152,7 +152,7 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 gap-3 border-t border-stone-200 pt-5 dark:border-neutral-800 md:grid-cols-3 md:gap-10 lg:gap-14">
           <p className="text-center text-xs text-stone-400 dark:text-neutral-600 md:col-span-2 md:text-left">
-            © 2026 CeylonUpdates.com · All rights reserved.
+            © 2026 CeylonUpdates.me · All rights reserved.
           </p>
           <div className="flex justify-center gap-4 md:justify-self-start">
             <Link href="/contact" className="text-xs text-stone-400 hover:text-accent">

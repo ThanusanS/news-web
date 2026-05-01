@@ -1,7 +1,7 @@
 import { databases, DB_ID, ARTICLES_COL, Query, createArticle } from '../../../lib/appwrite';
 import { articleSchema } from '../../../utils/validators';
 
-const ALLOWED_ORIGINS = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
+const ALLOWED_ORIGINS = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
 
 // Simple in-memory rate limiter (use Redis in production)
 const rateLimitMap = new Map();
@@ -45,18 +45,112 @@ export default async function handler(req, res) {
         tag,
       } = req.query;
 
-      const queries = [Query.limit(Math.min(parseInt(limit), 50)), Query.offset(parseInt(offset))];
+      const parsedLimit = Math.min(parseInt(limit), 50);
+      const parsedOffset = Number.isFinite(parseInt(offset)) ? parseInt(offset) : 0;
+      const normalizedSearch = typeof search === 'string' ? search.trim() : '';
+      const normalizedTag = typeof tag === 'string' ? tag.trim() : '';
+      const nowIso = new Date().toISOString();
 
-      if (status && status !== 'all') queries.push(Query.equal('status', status));
-      if (category) queries.push(Query.equal('category', category));
-      if (featured === 'true') queries.push(Query.equal('isFeatured', true));
-      if (tag) queries.push(Query.search('tags', tag));
-      if (search) queries.push(Query.search('title', search));
+      const filterQueries = [];
+      if (status && status !== 'all') filterQueries.push(Query.equal('status', status));
+      if (category) filterQueries.push(Query.equal('category', category));
+      if (featured === 'true') filterQueries.push(Query.equal('isFeatured', true));
 
-      if (sort === 'views') queries.push(Query.orderDesc('views'));
-      else queries.push(Query.orderDesc('publishedAt'));
+      const baseQueries = [Query.limit(parsedLimit), Query.offset(parsedOffset), ...filterQueries];
 
-      const result = await databases.listDocuments(DB_ID, ARTICLES_COL, queries);
+      const sortDocs = (docs) => {
+        if (sort === 'views') {
+          return docs.sort((a, b) => (b.views || 0) - (a.views || 0));
+        }
+        return docs.sort((a, b) => {
+          const left = a.publishedAt || a.$createdAt || '';
+          const right = b.publishedAt || b.$createdAt || '';
+          return right.localeCompare(left);
+        });
+      };
+
+      const filterPublished = (docs) => {
+        if (status !== 'published') return docs;
+        return docs.filter((doc) => !doc.publishedAt || String(doc.publishedAt) <= nowIso);
+      };
+
+      const runSearchQueries = async (querySets) => {
+        const seen = new Set();
+        const collected = [];
+        for (const qs of querySets) {
+          try {
+            const result = await databases.listDocuments(DB_ID, ARTICLES_COL, qs);
+            for (const doc of result.documents || []) {
+              if (seen.has(doc.$id)) continue;
+              seen.add(doc.$id);
+              collected.push(doc);
+            }
+          } catch {
+            continue;
+          }
+        }
+        return collected;
+      };
+
+      const fallbackFilter = (docs, term) => {
+        const needle = term.toLowerCase();
+        return docs.filter((doc) => {
+          const tags = Array.isArray(doc.tags) ? doc.tags.join(' ') : '';
+          const haystack =
+            `${doc.title || ''} ${doc.excerpt || ''} ${doc.content || ''} ${tags}`.toLowerCase();
+          return haystack.includes(needle);
+        });
+      };
+
+      let result;
+      if (normalizedSearch || normalizedTag) {
+        const querySets = [];
+        if (normalizedSearch) {
+          querySets.push([...baseQueries, Query.search('title', normalizedSearch)]);
+          querySets.push([...baseQueries, Query.search('tags', normalizedSearch)]);
+          querySets.push([...baseQueries, Query.search('excerpt', normalizedSearch)]);
+          querySets.push([...baseQueries, Query.search('content', normalizedSearch)]);
+        }
+        if (normalizedTag) {
+          querySets.push([...baseQueries, Query.search('tags', normalizedTag)]);
+        }
+
+        let documents = await runSearchQueries(querySets);
+        documents = filterPublished(documents);
+        documents = sortDocs(documents).slice(0, parsedLimit);
+
+        if (documents.length === 0 && normalizedSearch) {
+          const fallbackLimit = Math.min(200, Math.max(50, parsedLimit * 5));
+          const fallbackQueries = [
+            Query.limit(fallbackLimit),
+            Query.offset(0),
+            Query.orderDesc('publishedAt'),
+            ...filterQueries,
+          ];
+          const fallbackResult = await databases.listDocuments(
+            DB_ID,
+            ARTICLES_COL,
+            fallbackQueries
+          );
+          let fallbackDocs = filterPublished(fallbackResult.documents || []);
+          fallbackDocs = fallbackFilter(fallbackDocs, normalizedSearch);
+          documents = sortDocs(fallbackDocs).slice(0, parsedLimit);
+        }
+
+        result = {
+          documents,
+          total: documents.length,
+        };
+      } else {
+        const queries = [...baseQueries];
+        if (sort === 'views') queries.push(Query.orderDesc('views'));
+        else queries.push(Query.orderDesc('publishedAt'));
+        const data = await databases.listDocuments(DB_ID, ARTICLES_COL, queries);
+        result = {
+          documents: filterPublished(data.documents || []),
+          total: data.total,
+        };
+      }
 
       // Cache headers
       res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
@@ -64,8 +158,8 @@ export default async function handler(req, res) {
       return res.status(200).json({
         documents: result.documents,
         total: result.total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+        limit: parsedLimit,
+        offset: parsedOffset,
       });
     } catch (err) {
       console.error('[API] GET /articles error:', err);

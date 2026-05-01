@@ -1,7 +1,7 @@
 // pages/sitemap.xml.jsx
 import { getArticles } from '../lib/appwrite';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
 
 const STATIC_PAGES = [
   { path: '', priority: '1.0', changefreq: 'daily' },
@@ -35,26 +35,30 @@ function generateSitemap(articles) {
     <priority>${p.priority}</priority>
   </url>`
   ).join('\n  ')}
-  ${articles.map(
-    (a) => `<url>
+  ${articles
+    .map(
+      (a) => `<url>
     <loc>${SITE_URL}/${a.slug}</loc>
     <lastmod>${a.updatedAt || a.publishedAt || now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <news:news>
       <news:publication>
-        <news:name>CeylonUpdates.com</news:name>
+        <news:name>CeylonUpdates.me</news:name>
         <news:language>en</news:language>
       </news:publication>
       <news:publication_date>${a.publishedAt || now}</news:publication_date>
       <news:title>${a.title?.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</news:title>
     </news:news>
   </url>`
-  ).join('\n  ')}
+    )
+    .join('\n  ')}
 </urlset>`;
 }
 
-function SitemapPage() { return null; }
+function SitemapPage() {
+  return null;
+}
 
 export async function getServerSideProps({ res }) {
   try {

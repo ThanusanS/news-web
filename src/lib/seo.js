@@ -1,5 +1,5 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
-const SITE_NAME = 'CeylonUpdates.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
+const SITE_NAME = 'CeylonUpdates.me';
 
 export function buildSeoProps({
   title,

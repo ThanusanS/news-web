@@ -181,7 +181,7 @@ export function paginate(total, page, perPage) {
 
 // Build OG image URL (using dynamic og API)
 export function buildOgImageUrl(title, category) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
   const params = new URLSearchParams({
     title: title?.slice(0, 80) || '',
     category: category || '',

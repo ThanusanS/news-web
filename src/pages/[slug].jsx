@@ -14,8 +14,9 @@ import {
   estimateReadTime,
 } from '../lib/seo';
 import { FiClock, FiShare2 } from 'react-icons/fi';
+import { getCategoryLabel } from '../utils/constants';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ceylonupdates.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ceylonupdates.me';
 
 function SocialIcon({ platform, className = 'h-3.5 w-3.5 md:h-4 md:w-4' }) {
   const base = { className, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' };
@@ -284,7 +285,7 @@ export default function ArticlePage({ article, relatedArticles }) {
               buildBreadcrumbSchema([
                 { name: 'Home', path: '/' },
                 {
-                  name: article.category?.replace(/-/g, ' '),
+                  name: getCategoryLabel(article.category),
                   path: `/category/${article.category}`,
                 },
                 { name: article.title, path: `/${article.slug}` },
@@ -310,7 +311,7 @@ export default function ArticlePage({ article, relatedArticles }) {
             </Link>
             <span>›</span>
             <Link href={`/category/${article.category}`} className="capitalize hover:text-accent">
-              {article.category?.replace(/-/g, ' ')}
+              {getCategoryLabel(article.category)}
             </Link>
             <span>›</span>
             <span className="max-w-xs truncate text-stone-700 dark:text-neutral-300">
@@ -324,7 +325,7 @@ export default function ArticlePage({ article, relatedArticles }) {
               href={`/category/${article.category}`}
               className="inline-block rounded bg-accent px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white"
             >
-              {article.category?.replace(/-/g, ' ')}
+              {getCategoryLabel(article.category)}
             </Link>
           </div>
 
@@ -536,34 +537,34 @@ export default function ArticlePage({ article, relatedArticles }) {
 
                       return (
                         <>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-sm font-bold text-white">
-                      {avatarInitial}
-                    </div>
-                    <div className="min-w-0 flex-1 border-b border-stone-100 pb-4 dark:border-neutral-800">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
-                          {displayName}
-                        </span>
-                        {c.__depth > 0 && (
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
-                            Reply
-                          </span>
-                        )}
-                        <span className="text-xs text-stone-500 dark:text-neutral-500">
-                          {c.createdAt
-                            ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
-                            : ''}
-                        </span>
-                      </div>
-                      <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-stone-800 dark:text-neutral-200">
-                        {c.content ||
-                          c.comment ||
-                          c.commentText ||
-                          c.message ||
-                          c.body ||
-                          'Comment submitted.'}
-                      </p>
-                    </div>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-orange-400 text-sm font-bold text-white">
+                            {avatarInitial}
+                          </div>
+                          <div className="min-w-0 flex-1 border-b border-stone-100 pb-4 dark:border-neutral-800">
+                            <div className="mb-1 flex items-center gap-2">
+                              <span className="text-sm font-semibold text-stone-900 dark:text-neutral-100">
+                                {displayName}
+                              </span>
+                              {c.__depth > 0 && (
+                                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
+                                  Reply
+                                </span>
+                              )}
+                              <span className="text-xs text-stone-500 dark:text-neutral-500">
+                                {c.createdAt
+                                  ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
+                                  : ''}
+                              </span>
+                            </div>
+                            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-stone-800 dark:text-neutral-200">
+                              {c.content ||
+                                c.comment ||
+                                c.commentText ||
+                                c.message ||
+                                c.body ||
+                                'Comment submitted.'}
+                            </p>
+                          </div>
                         </>
                       );
                     })()}

@@ -18,7 +18,7 @@ const TEAM = [
   {
     name: 'Priya Mendis',
     role: 'AI & Programming Writer',
-    bio: 'Machine learning engineer sharing practical AI tutorials for South Asian readers.',
+    bio: 'Machine learning engineer sharing practical AI & Innovation insights for South Asian readers.',
     icon: FiCpu,
   },
   {
@@ -33,20 +33,20 @@ export default function AboutPage() {
   return (
     <>
       <NextSeo
-        title="About Us | CeylonUpdates.com"
-        description="CeylonUpdates.com is Sri Lanka's fastest-growing news and tech platform. Learn about our team, mission, and content strategy."
-        canonical="https://ceylonupdates.com/about"
+        title="About Us | CeylonUpdates.me"
+        description="CeylonUpdates.me is Sri Lanka's fastest-growing news and tech platform. Learn about our team, mission, and content strategy."
+        canonical="https://www.ceylonupdates.me/about"
       />
       <Layout>
         {/* Hero */}
         <div className="bg-gradient-to-br from-navy to-accent py-16 text-white">
           <div className="mx-auto max-w-4xl px-4 text-center">
             <h1 className="mb-4 font-head text-4xl font-black md:text-5xl">
-              About CeylonUpdates.com
+              About CeylonUpdates.me
             </h1>
             <p className="mx-auto max-w-2xl text-lg leading-relaxed text-white/80">
-              Sri Lanka's fastest-growing news and tech platform, delivering reliable news, AI
-              tutorials and programming guides for readers across South Asia.
+              Sri Lanka's fastest-growing news and tech platform, delivering reliable news, AI &
+              Innovation and programming guides for readers across South Asia.
             </p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function AboutPage() {
                 {
                   icon: FiCpu,
                   title: 'Democratize AI Knowledge',
-                  text: 'Make AI tools and tutorials accessible to everyone in South Asia — from students to professionals, in plain language that works.',
+                  text: 'Make AI & Innovation tools accessible to everyone in South Asia — from students to professionals, in plain language that works.',
                 },
                 {
                   icon: FiCode,
@@ -99,7 +99,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
                 { num: 'Daily', label: 'News Coverage' },
-                { num: 'Practical', label: 'AI Tutorials' },
+                { num: 'Practical', label: 'AI & Innovation' },
                 { num: 'Actionable', label: 'Programming Guides' },
                 { num: 'Regional', label: 'South Asia Focus' },
               ].map((s) => (
@@ -148,7 +148,7 @@ export default function AboutPage() {
               Reach engaged readers across Sri Lanka and South Asia. We offer banner ads, sponsored
               content, and newsletter sponsorships.
             </p>
-            <a href="mailto:ads@ceylonupdates.com" className="btn-primary inline-flex">
+            <a href="mailto:ads@ceylonupdates.me" className="btn-primary inline-flex">
               <FiMail size={16} className="mr-2" /> Contact Advertising Team →
             </a>
           </section>

@@ -1719,7 +1719,7 @@ export default function NewPostPage() {
                 type="url"
                 value={form.canonicalUrl}
                 onChange={set('canonicalUrl')}
-                placeholder="https://ceylonupdates.com/your-article"
+                placeholder="https://www.ceylonupdates.me/your-article"
                 className="form-input"
               />
             </div>

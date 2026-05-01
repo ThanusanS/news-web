@@ -33,28 +33,37 @@ export default function AdminLogin() {
       <Head>
         <title>Admin Login | CeylonUpdates</title>
       </Head>
-      <div className="min-h-screen bg-stone-100 dark:bg-neutral-950 flex items-center justify-center px-4">
+      <div className="flex min-h-screen items-center justify-center bg-stone-100 px-4 dark:bg-neutral-950">
         <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
+          <div className="mb-8 text-center">
             <span className="font-head text-3xl font-black text-accent">Ceylon</span>
-            <span className="font-head text-3xl font-black text-stone-900 dark:text-neutral-100">Updates</span>
-            <p className="text-stone-500 dark:text-neutral-500 text-sm mt-2">Admin CMS — Sign In</p>
+            <span className="font-head text-3xl font-black text-stone-900 dark:text-neutral-100">
+              Updates
+            </span>
+            <p className="mt-2 text-sm text-stone-500 dark:text-neutral-500">Admin CMS — Sign In</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-neutral-900 border border-stone-200 dark:border-neutral-800 rounded-xl p-6 shadow-sm space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+          >
             <div>
-              <label className="block text-xs font-bold tracking-wider text-stone-500 dark:text-neutral-500 uppercase mb-1.5">Email</label>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@ceylonupdates.com"
+                placeholder="admin@ceylonupdates.me"
                 className="form-input"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold tracking-wider text-stone-500 dark:text-neutral-500 uppercase mb-1.5">Password</label>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
@@ -67,13 +76,13 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-2.5 bg-accent text-white rounded font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full rounded bg-accent py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
 
-          <p className="text-center text-xs text-stone-400 dark:text-neutral-600 mt-4">
+          <p className="mt-4 text-center text-xs text-stone-400 dark:text-neutral-600">
             Powered by Appwrite JWT Auth · CeylonUpdates CMS
           </p>
         </div>

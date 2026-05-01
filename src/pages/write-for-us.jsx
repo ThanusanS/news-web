@@ -14,9 +14,9 @@ export default function WriteForUsPage() {
   return (
     <>
       <NextSeo
-        title="Write For Us | CeylonUpdates.com"
-        description="Contribute to CeylonUpdates.com. Submit high-quality articles on Sri Lanka news, tech, AI, jobs, sports, and education."
-        canonical="https://ceylonupdates.com/write-for-us"
+        title="Write For Us | CeylonUpdates.me"
+        description="Contribute to CeylonUpdates.me. Submit high-quality articles on Sri Lanka news, tech, AI, jobs, sports, and education."
+        canonical="https://www.ceylonupdates.me/write-for-us"
       />
 
       <Layout>
@@ -24,14 +24,16 @@ export default function WriteForUsPage() {
           <div className="rounded-2xl bg-gradient-to-br from-navy to-accent p-8 text-white">
             <h1 className="font-head text-3xl font-black md:text-4xl">Write For Us</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/85 md:text-base">
-              We welcome experienced writers, journalists, and subject experts who can publish useful,
-              trustworthy content for our audience.
+              We welcome experienced writers, journalists, and subject experts who can publish
+              useful, trustworthy content for our audience.
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
             <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">What We Publish</h2>
+              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
+                What We Publish
+              </h2>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-600 dark:text-neutral-400">
                 <li>Sri Lanka News and analysis</li>
                 <li>World News explainers</li>
@@ -43,10 +45,15 @@ export default function WriteForUsPage() {
             </section>
 
             <section className="rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">Editorial Standards</h2>
+              <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
+                Editorial Standards
+              </h2>
               <div className="mt-3 space-y-2">
                 {REQUIREMENTS.map((item) => (
-                  <p key={item} className="flex items-start gap-2 text-sm text-stone-600 dark:text-neutral-400">
+                  <p
+                    key={item}
+                    className="flex items-start gap-2 text-sm text-stone-600 dark:text-neutral-400"
+                  >
                     <FiCheckCircle className="mt-0.5 shrink-0 text-accent" size={14} />
                     {item}
                   </p>
@@ -56,7 +63,9 @@ export default function WriteForUsPage() {
           </div>
 
           <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">How To Submit</h2>
+            <h2 className="font-head text-xl font-bold text-stone-900 dark:text-neutral-100">
+              How To Submit
+            </h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-stone-600 dark:text-neutral-400">
               <li>Send your topic pitch and outline.</li>
               <li>Include 2 writing samples or published links.</li>
@@ -64,12 +73,12 @@ export default function WriteForUsPage() {
             </ol>
 
             <a
-              href="mailto:editor@ceylonupdates.com?subject=Write%20For%20Us%20Submission"
+              href="mailto:editor@ceylonupdates.me?subject=Write%20For%20Us%20Submission"
               className="mt-5 inline-flex items-center gap-2 rounded bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
             >
               <FiMail size={14} /> Submit Your Pitch
             </a>
-            <p className="mt-3 text-xs text-stone-500 dark:text-neutral-500 inline-flex items-center gap-1">
+            <p className="mt-3 inline-flex items-center gap-1 text-xs text-stone-500 dark:text-neutral-500">
               <FiFileText size={12} />
               Response time: usually within 3-5 business days.
             </p>
