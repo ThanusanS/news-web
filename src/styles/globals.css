@@ -195,6 +195,19 @@
   .article-prose .social-embed strong {
     @apply mr-1 font-semibold;
   }
+
+  @media (max-width: 640px) {
+    .article-prose img,
+    .article-prose .editor-image {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      float: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      display: block !important;
+    }
+  }
   .article-prose::after {
     content: '';
     display: block;

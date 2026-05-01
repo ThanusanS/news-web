@@ -69,6 +69,9 @@ export default function NewPostPage() {
   const [aiTone, setAiTone] = useState('neutral and factual');
   const [aiWordTarget, setAiWordTarget] = useState(1200);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [thumbnailTitle, setThumbnailTitle] = useState('');
+  const [thumbnailPrompt, setThumbnailPrompt] = useState('');
+  const [thumbnailGenerating, setThumbnailGenerating] = useState(false);
   const [aiAttempt, setAiAttempt] = useState(0);
   const [aiGenerationMeta, setAiGenerationMeta] = useState({ provider: '', model: '' });
   const [trendSeed, setTrendSeed] = useState('');
@@ -229,6 +232,42 @@ export default function NewPostPage() {
     }
     const fallback = String(input || '').trim();
     return fallback === '[object Object]' ? '' : fallback;
+  }
+
+  function buildThumbnailPrompt() {
+    const titleText = (thumbnailTitle || form.title || '').trim();
+    const titleLine = titleText ? `"${titleText}"` : '""';
+    return [
+      'Professional blog thumbnail',
+      `Centered title text: ${titleLine}`,
+      'Clean modern layout, high contrast',
+      'Professional color palette',
+      '16:9, 1280x720',
+      'Eye-catching, clear visuals',
+      'Text centered, not top',
+      'No watermark, no logo, no extra text',
+    ].join(', ');
+  }
+
+  function buildPollinationsUrl(prompt) {
+    const encoded = encodeURIComponent(prompt);
+    const seed = Date.now();
+    return `https://image.pollinations.ai/prompt/${encoded}?width=1280&height=720&nologo=true&seed=${seed}`;
+  }
+
+  async function handleGenerateThumbnail() {
+    const prompt = (thumbnailPrompt || '').trim() || buildThumbnailPrompt();
+    setThumbnailPrompt(prompt);
+    setThumbnailGenerating(true);
+    try {
+      const url = buildPollinationsUrl(prompt);
+      setForm((f) => ({ ...f, featuredImage: url }));
+      toast.success('Thumbnail generated from Pollinations.');
+    } catch {
+      toast.error('Failed to generate thumbnail.');
+    } finally {
+      setThumbnailGenerating(false);
+    }
   }
 
   function resetComposer(showToast = true) {
@@ -1447,6 +1486,75 @@ export default function NewPostPage() {
 
           {/* Thumbnail */}
           <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-3 text-sm font-semibold">AI Thumbnail Generator (Pollinations)</h3>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Title Text On Image
+            </label>
+            <input
+              type="text"
+              value={thumbnailTitle}
+              onChange={(e) => setThumbnailTitle(e.target.value)}
+              placeholder="Leave blank to auto-use post title"
+              className="form-input"
+            />
+            <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-500">
+              Prompt
+            </label>
+            <textarea
+              value={thumbnailPrompt}
+              onChange={(e) => setThumbnailPrompt(e.target.value)}
+              placeholder="Auto-generated from the template"
+              className="form-input resize-none"
+              rows={4}
+            />
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setThumbnailPrompt(buildThumbnailPrompt())}
+                className="rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Use Template
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateThumbnail}
+                className="btn-primary px-4 py-2 text-xs"
+                disabled={thumbnailGenerating}
+              >
+                {thumbnailGenerating ? 'Generating...' : 'Generate Thumbnail'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, featuredImage: '' }))}
+                className="rounded border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Remove Image
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-stone-400 dark:text-neutral-600">
+              The generated image URL will be saved to Featured Image.
+            </p>
+            {form.featuredImage && (
+              <div className="mt-3">
+                <img
+                  src={form.featuredImage}
+                  alt="Generated thumbnail preview"
+                  className="aspect-video w-full rounded object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <a
+                  href={form.featuredImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex text-xs font-semibold text-accent hover:underline"
+                >
+                  Open generated image
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-3 text-sm font-semibold">Thumbnail (YouTube style)</h3>
             <label className="mb-2 block w-full cursor-pointer rounded-lg border-2 border-dashed border-stone-200 py-8 text-center transition-colors hover:border-accent dark:border-neutral-700">
               <input
@@ -1536,6 +1644,7 @@ export default function NewPostPage() {
                 src={form.featuredImage}
                 alt="Thumbnail preview"
                 className="mt-2 aspect-video w-full rounded object-cover"
+                referrerPolicy="no-referrer"
               />
             )}
           </div>

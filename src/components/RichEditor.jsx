@@ -205,15 +205,15 @@ const CustomImage = Image.extend({
     };
   },
   renderHTML({ HTMLAttributes }) {
-    const align = HTMLAttributes.align || 'center';
-    const crop = HTMLAttributes.crop || 'none';
-    const size = HTMLAttributes.size || 'full';
-    const shape = HTMLAttributes.shape || 'rounded';
-    const frame = HTMLAttributes.frame || 'none';
-    const clipTop = Number(HTMLAttributes.clipTop || 0);
-    const clipRight = Number(HTMLAttributes.clipRight || 0);
-    const clipBottom = Number(HTMLAttributes.clipBottom || 0);
-    const clipLeft = Number(HTMLAttributes.clipLeft || 0);
+    const align = HTMLAttributes.align || HTMLAttributes['data-align'] || 'center';
+    const crop = HTMLAttributes.crop || HTMLAttributes['data-crop'] || 'none';
+    const size = HTMLAttributes.size || HTMLAttributes['data-size'] || 'full';
+    const shape = HTMLAttributes.shape || HTMLAttributes['data-shape'] || 'rounded';
+    const frame = HTMLAttributes.frame || HTMLAttributes['data-frame'] || 'none';
+    const clipTop = Number(HTMLAttributes.clipTop ?? HTMLAttributes['data-clip-top'] ?? 0);
+    const clipRight = Number(HTMLAttributes.clipRight ?? HTMLAttributes['data-clip-right'] ?? 0);
+    const clipBottom = Number(HTMLAttributes.clipBottom ?? HTMLAttributes['data-clip-bottom'] ?? 0);
+    const clipLeft = Number(HTMLAttributes.clipLeft ?? HTMLAttributes['data-clip-left'] ?? 0);
 
     const styleParts = [];
     styleParts.push('max-width:100%');
@@ -705,6 +705,10 @@ export default function RichEditor({ content, onChange, onUploadImage }) {
     setActiveImagePos(targetPos);
     const latestAttrs = editor.getAttributes('image');
     if (latestAttrs?.src) setActiveImageSrc(latestAttrs.src);
+
+    if (typeof onChange === 'function') {
+      onChange(editor.getHTML());
+    }
   }
 
   function openMouseCrop() {
