@@ -36,6 +36,19 @@ export default function Document() {
             />
           </>
         )}
+
+        {/* Google AdSense */}
+        {(() => {
+          const ADSENSE_ID = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || '';
+          const hasRealAdsenseId = ADSENSE_ID && ADSENSE_ID.startsWith('ca-pub-') && !ADSENSE_ID.includes('XXXX');
+          return hasRealAdsenseId ? (
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_ID}`}
+              crossOrigin="anonymous"
+            />
+          ) : null;
+        })()}
       </Head>
       <body>
         <Main />
