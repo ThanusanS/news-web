@@ -151,10 +151,10 @@ export const SEO_KEYWORDS = {
 };
 
 export const SOCIAL_LINKS = {
-  facebook: 'https://facebook.com/ceylonupdates',
-  twitter: 'https://twitter.com/ceylonupdates',
-  youtube: 'https://youtube.com/@ceylonupdates',
-  whatsapp: 'https://whatsapp.com/channel/ceylonupdates',
+  facebook: 'https://www.facebook.com/CeylonUpdatesOfficial/',
+  twitter: 'https://x.com/CeylonUpdates',
+  youtube: 'https://youtube.com/@ceylonupdatesofficial?si=_wt8wE2Fha4cTFx1',
+  whatsapp: 'https://whatsapp.com/channel/0029VbCtQ0IHAdNOczw0aV0L',
   telegram: 'https://t.me/ceylonupdates',
   instagram: 'https://instagram.com/ceylonupdates',
 };
