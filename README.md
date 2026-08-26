@@ -6,7 +6,7 @@ The platform combines a modern news experience with AI-powered features such as 
 
 ## 🚀 Live Demo
 
-🌐 **Live Website:** Add your live URL here
+https://www.ceylonupdates.me/
 
 
 
